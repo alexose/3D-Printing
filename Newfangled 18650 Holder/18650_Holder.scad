@@ -1,13 +1,5 @@
 use <threads.scad>;
 
-// TODO:
-// I had this idea that the conductive plate could actually be two pieces.  The first is a flat plate with
-// posts on it.  You would wrap the wire around the posts in a particular order.  Then, a second piece
-// snaps down on top of it, locking the wire in place.
-//
-// The goal is to make it really easy to wind the wire, and also really durable.  More thinking on this is
-// needed.
-
 number_of_cells = 3;
 distance_apart = 11;
 plate_radius = 21.6;
@@ -24,9 +16,9 @@ cell_height = 65;
 cell_radius = 18 / 2 + tolerance;
 
 
-// plate();
+plate();
 // translate([-plate_radius*2 - 3, 0]) cap();
-translate([plate_radius*2 + 3, 0]) tube();
+// translate([plate_radius*2 + 3, 0]) tube();
 
 module plate() {
     p = distance_apart;
@@ -70,7 +62,7 @@ module plate() {
             scale([1, 1, 0.25]) hull() cells(0.1);
             r = 18 / 2;
             union() {
-                cells(0.2);
+                cells(0.15);
                 translate([0, 0, h/2]) cylinder(hs, r=5);
             }
         }   
@@ -108,11 +100,8 @@ module cap() {
     r = plate_radius + tolerance + t;
     f = tolerance; // tolerance fudge factor for plate
     
-    difference() {
-        translate([0, 0, t]) ScrewHole(r*2 + f, thread_height, pitch=3, tooth_angle=55) {
-            translate([0, 0, -t]) rounded_cylinder(r=r+t,h=h,n=2,$fn=60);
-        }
-        cylinder(h, r=t);
+    translate([0, 0, t]) ScrewHole(r*2 + f, thread_height, pitch=3, tooth_angle=55) {
+        translate([0, 0, -t]) rounded_cylinder(r=r+t,h=h,n=2,$fn=60);
     }
     
     module rounded_cylinder(r,h,n) {
@@ -140,7 +129,7 @@ module tube() {
             translate([0, 0, h]) middle_section();
             translate([0, 0, h + mh]) ScrewThread(r*2 + f, h, pitch=3, tooth_angle=55);
         }
-        hull() cells(1);
+        hull() cells(0.92);
     }
     
     module middle_section() {
@@ -149,19 +138,9 @@ module tube() {
         r1 = plate_radius + t;
         r2 = r1 - 15;
         
-        difference() {
-            union() {
-                cylinder(mh, r1, r2);
-                hull() radial_multiply(p) cylinder(mh, r=r + 5);
-                translate([0, 0, mh]) rotate([0, 180]) cylinder(mh, r1, r2);
-            }
-            difference() {
-                cylinder(mh, r = r1 + 5);
-                cylinder(mh, r = r1);
-            }
-        }
-        
-
+        cylinder(mh, r1, r2);
+        hull() radial_multiply(p) cylinder(mh, r=r);
+        translate([0, 0, mh]) rotate([0, 180]) cylinder(mh, r1, r2);
     }
 }
 
