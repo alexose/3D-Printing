@@ -54,13 +54,20 @@ points = [
 ];
 
     
-echo("Distance between teeth is");
-outer_radius = r - (depth / 2) + (tooth_depth / 2);
+echo("Distance between center of each tooth is");
+outer_radius = r + (depth);
 echo(distance3d(
     [outer_radius * cos(0), outer_radius * sin(0), h / (360 / fa) * (0 / fa)],
     [outer_radius * cos(fa), outer_radius * sin(fa), h / (360 / fa)]
-    ) - tooth_width);
+    ));
     
+p1 =     [outer_radius * cos(0), outer_radius * sin(0), h / (360 / fa) * (0 / fa)];
+p2 = [outer_radius * cos(fa), outer_radius * sin(fa), h / (360 / fa)];
+p3 = [outer_radius * cos(fa*2), outer_radius * sin(fa*2), h / (360 / fa*2)];
+    
+//translate(p1) cylinder(15, 1, 1, true, $fn=30);
+//translate(p2) cylinder(15, 1, 1, true, $fn=30);
+//translate(p3) cylinder(15, 1, 1, true, $fn=30);
     
 polyline3D(points, thickness, 3);
     

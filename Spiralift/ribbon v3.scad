@@ -30,9 +30,12 @@ module polyline(points, width = 1) {
 
 PI = 3.14159;
 step = 0.1;
-circles = 18.5;
+//circles = 15.2;
+circles = 17;
 arm_len = 1.5;
+//init_radian = 44 * PI;
 init_radian = 48 * PI;
+
 
 b = arm_len / 2 / PI;
 // one radian is almost 57.2958 degrees
@@ -44,7 +47,9 @@ points = [for(theta = [init_radian:step:3 * PI * circles])
 // Cut out holes
 
 dots = 140;            // number of dots
-dot_dist = 4.831 + 3;  // distance between points
+// dot_dist = 8.35394;      // distance between points
+dot_dist = 8.7694;
+
 
 function r(b, theta) = b * theta;
 
@@ -64,12 +69,16 @@ function find_radians(b, l, radians, n, count = 1) =
         count + 1)
     );
 
-
 difference() {
-    translate([0,0,-2]) linear_extrude(8) polyline(points, 1);
+    translate([0,0,-2]) linear_extrude(13) polyline(points, 1);
     for(theta = find_radians(b, dot_dist, [init_radian], dots)) {
         rotate(theta * 57.2958) 
             translate([b * theta - 0.75, 0, 0]) 
-                cube([1.5, 3.1, 1.3]);
+                cube([1.5, 3.4, 1.9]);
+    }
+    for(theta = find_radians(b, dot_dist, [init_radian], dots)) {
+        rotate(theta * 57.2958) 
+            translate([b * theta - 0.75, 0, 7]) 
+                cube([1.5, 3.4, 1.9]);
     }
 }
