@@ -1,6 +1,6 @@
 # 3D Printable Battery Holder for 18650 Cylindrical Cells
 
-![Project Image](./image.jpg)
+<img src="image.jpg" alt="Image of 3D Printed Battery Holder" width="500px">
 
 ## Description
 
