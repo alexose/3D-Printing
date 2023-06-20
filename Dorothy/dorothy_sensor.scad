@@ -5,17 +5,18 @@ Dorothy Sensor
 
 (see also: Dorothy Hub)
 
-The Dorothy Sensor consists of three parts:
+The Dorothy Sensor Platform consists of four parts:
 
-1. Brain: A threaded disc on which the sensor and and CubecCell board is mounted.
-2. Battery Pack:  Three 18650 cells placed in a Cylindrical Battery Holder (see: https://www.thingiverse.com/thing:6080710)
-3. Shell: The threaded cylinder that covers the whole assembly and protects it from the elements
+  1. Brain: A threaded disc on which the sensor and and CubecCell board is mounted
+  2. Battery Pack:  Three 18650 cells placed in a Cylindrical Battery Holder (see: https://www.thingiverse.com/thing:6080710)
+  3. Outer Shell: The threaded cylinder that covers the whole assembly and protects it from the elements
+  4. Inner Shell (optional):  A hollow cylinder that fits around the Brain and helps snug everything in place
 
 The Brain can come in many different shapes, depending on the type of sensor(s) you want to use.
 This file includes variations for:
 
 * US-100 ultrasonic sensor
-* DHT22
+* DHT22 temperature and humidity sensor
 * Catnip Eletronics' soil moisture sensor (https://www.tindie.com/products/miceuz/i2c-soil-moisture-sensor/)
 
 With more on the way!
@@ -26,108 +27,90 @@ With more on the way!
 use <threads.scad>
 
 // Parts
-render_shell = 1;
+render_outer_shell = 1;
+render_inner_shell = 1;
 render_brain = 1;
+brain_type = "us100";  // us100, dht22, or soil_moisture
+
 
 // Adjustable dimensions
-thickness = 2;     // Thickness of wall.  Recommend 2mm to make room for threads
-width = 27;        // Outer radius.  With 2mm thick walls, the inside radius is 25mm
-tolerance = 0.3;   // Adjust if threads don't fit together
-dome_height = 17;  // Controls "Roundness" of shell
-overhang = 4;      // Extra shell height to allow for a bit of overhang
+thickness = 2;       // Thickness of wall.  Recommend 2mm to make room for threads
+width = 27;          // Outer radius.  With 2mm thick walls, the inside radius becomes 25mm
+dome_height = 8;     // Controls "Roundness" of shell
+overhang = 4;        // Extra shell height to allow for a bit of overhang
+tolerance = 0.3;     // Can be adjusted if threads don't fit together
+fit_tolerance = 0.6; // Can be adjusted if inner shell doesn't fit
+
 
 // Non-adjustable dimensions
+brain_height = 30; // Height of inner "brain" compartment
 battery_pack_height = 83;
 pitch = 2.8;
 tooth_angle = 50;
-brain_height = 6;  // Height of inner "brain" compartment
+seal_height = 6;
 
-
-// Total height of outer shell, as determined by everything inside of it
 height = battery_pack_height 
     + brain_height 
+    + seal_height
     + overhang;
 
-if (render_brain) translate([width + thickness*2, 0, 0]) brain();
-if (render_shell) translate([-width - thickness*2, 0, 0]) rotate([0, 180]) shell();
+offset = width * 2.25;
+if (render_brain) translate([0, 0, 0]) brain();
+if (render_outer_shell) translate([offset, 0, 0]) outer_shell();
+if (render_inner_shell) translate([0, offset, 0]) inner_shell();
 
+module brain() {
+    if (brain_type == "us100") brain_us100();
+    if (brain_type == "dht22") brain_dht22();
+    if (brain_type == "soil_moisture") brain_soil_moisture();
+}
 
-module brain(){
+module brain_us100() {
+    seal();
+}
+module brain_dht22() {
+    seal();
+}
 
-    board_width = 36.8;
-    board_height = 19.1;
+module brain_soil_moisture() {
+    seal();
+}
 
-    sensor_width = 43.2 * 1.05; // fudged a bit
-    sensor_height = 18.8 * 1.07;
-    sensor_depth = 3;
+module seal(){
 
-    h = inner_height;
-    w = width;
-    
-    sw = sensor_width;
-    sh = sensor_height;
-    sd = sensor_depth;
-    
-    vt = standoff_thickness;
-    vh = standoff_height;
-
-    bw = board_width;
-    bh = board_height;
-
-    
-    difference() {
-        union() {
-            
-            difference() {
-                ScrewThread(w*2 - thickness, h, pitch=pitch, tooth_angle=tooth_angle, tolerance=tolerance);
-                translate([0, 0, inner_height - (sd / 2) ]) {
-                    translate([0, 0, 1]) {
-                        cube([sw, sh, 3], center=true);
-                        oval_cutout();
-                    }
-                }
-                sensor_holes(h);
-                
-            }
-            translate([0, 0, h]) standoffs(vt, vh, bh, bw);
-        }
-        
-        // Slice out a piece to make room for buttons
-        slice_offset = -2;
-        slice_height = 3;
-        translate([bh, slice_offset, h+vh - 3]) rotate([0, 0, 90]) cube([bh, bw, vh]);
-        
-        union(){
-            r = 1; // Mounting hole radius
-            o = 4; // Mounting hole offset
-            d = 5; // Mounting hole depth 
-            d2 = 6; // Standoff mounting hole depth
-            translate([0, 0, inner_height - d]) standoffs(r, d, sw - o, sh - o);              
-            translate([0, 0, inner_height + vh - d2]) standoffs(r, d2, bh, bw);
-        }
-    }
+    ScrewThread(width*2 - thickness, seal_height, pitch=pitch, tooth_angle=tooth_angle, tolerance=tolerance);
 }
  
-module shell(){
-    h = height + overhang;
+module outer_shell(){
+    h = height;
     w = width;
     t = thickness/2;
     
     $fn=150;
 
-    threaded_section_height = inner_height + overhang;
-    compartment_height = inner_height + overhang + standoff_height + pizza_saver_height;
+    total_height = height + dome_height;
+    threaded_section_height = seal_height + overhang;
     
-    //color([0.5,0.5,0,0.8]);
-    
-    ScrewHole(w*2 - thickness, threaded_section_height, pitch=pitch, tooth_angle=tooth_angle, tolerance=1) { 
+    translate([0, 0, total_height]) rotate([0, 180]) ScrewHole(w*2, threaded_section_height, pitch=pitch, tooth_angle=tooth_angle, tolerance=1) { 
         difference(){
-            domed_cylinder(h,w+t);
-            translate([0, 0, compartment_height ]) battery_pack();
-            cylinder(compartment_height, w-1, w-1);
+            domed_cylinder(h,w + t*2);
+            domed_cylinder(h-t,w);
         }
-    } 
+    }
+}
+
+module inner_shell(){
+    h = brain_height;
+    w = width - thickness - fit_tolerance;
     
+    $fn=150;
+    
+    
+    
+    difference(){
+        cylinder(h,r=w);
+        cylinder(h,r=w - thickness);
+    }
 }
 
 module sensor_holes(h){
@@ -162,14 +145,14 @@ module domed_cylinder(h,w){
     $fs=3; // Don't set this to less than 1 unless you enjoy freezing OpenSCAD
     $fa=0.1;
     $fn=150; // Again, careful here
-    c = dome_height;
+    c = dome_height * 2;
     // translate([0, 0, h]) scale([1,1,0.5]) sphere(w);
 
     difference(){ 
         union(){ 
-            translate([0, 0, h]) scale([1, 1, 0.5]) sphere(w);
+            translate([0, 0, h]) scale([1, 1, 0.5]) sphere(w); // Flattened sphere
             cylinder(h, w, w);
         }
-        translate([0, 0, h+c]) cube([w*2, w*2, c], center=true);
+        translate([0, 0, h+c]) cube([w*2, w*2, c], center=true);  // Cutoff
     }
  }
