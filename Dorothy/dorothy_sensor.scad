@@ -30,7 +30,7 @@ use <threads.scad>
 render_outer_shell = 1;
 render_inner_shell = 1;
 render_brain = 1;
-brain_type = "us100";  // us100, dht22, or soil_moisture
+brain_type = "soil_moisture";  // us100, dht22, or soil_moisture
 
 
 // Adjustable dimensions
@@ -73,7 +73,43 @@ module brain_dht22() {
 }
 
 module brain_soil_moisture() {
-    seal();
+    h = inner_height;
+    w = width;
+    
+    sw = sensor_width;
+    sh = sensor_height;
+    sd = sensor_depth;
+    
+    vt = standoff_thickness;
+    vh = standoff_height;
+
+    bw = 42;
+    bd = 5;
+    bh = 50;
+    
+    cutout_tolerance = 0.4;
+   
+    
+    difference() {
+        union() {
+            radius = 1;
+            translate([-bw / 2, -bd, h - radius]) roundedcube([bw, bd, bh], radius=radius);
+            translate([0, 7]) seal();
+        }
+        union() {
+            // Extra cutout to give space for chips
+            hull() {
+                translate([0, -2, 12]) roundedcube([12, 2.5, 40], true); 
+                translate([0, -2, 32]) rotate([0, 45]) roundedcube([8.5, 2.5, 8.5], true);
+            }
+
+            translate([0, 0, -22.5]) rotate([90, 0, 0]) scale([1, 1, 0.7])  minkowski() {
+                import("soil-moisture-sensor.stl");
+                cylinder(1, cutout_tolerance, cutout_tolerance);
+            }
+            translate([0, -2, 30]) rotate([90, 0, 0]) standoffs(1, 3, 18.92, 36.71);
+        }
+    } 
 }
 
 module seal(){
