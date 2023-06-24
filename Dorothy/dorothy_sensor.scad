@@ -27,9 +27,9 @@ With more on the way!
 use <threads.scad>
 
 // Parts
-render_outer_shell = 1;
+render_outer_shell = 0;
 render_inner_shell = 1;
-render_brain = 1;
+render_brain = 0;
 brain_type = "soil_moisture";  // us100, dht22, or soil_moisture
 
 
@@ -40,10 +40,11 @@ dome_height = 8;     // Controls "Roundness" of shell
 overhang = 4;        // Extra shell height to allow for a bit of overhang
 tolerance = 0.3;     // Can be adjusted if threads don't fit together
 fit_tolerance = 0.6; // Can be adjusted if inner shell doesn't fit
+seal_padding = 0.5;  // Extra padding to allow annular seal to fit
 
 
 // Non-adjustable dimensions
-brain_height = 30; // Height of inner "brain" compartment
+brain_height = 55; // Height of inner "brain" compartment
 battery_pack_height = 83;
 pitch = 2.8;
 tooth_angle = 50;
@@ -72,49 +73,75 @@ module brain_dht22() {
     seal();
 }
 
-module brain_soil_moisture() {
-    h = inner_height;
-    w = width;
-    
-    sw = sensor_width;
-    sh = sensor_height;
-    sd = sensor_depth;
-    
-    vt = standoff_thickness;
-    vh = standoff_height;
+// The soil moisture sensor must be mounted vertically.  To make this work, the 'brain' is separated
+// into two pieces that snap together:  The bottom piece (referred to as 'seal' in this code)
 
-    bw = 42;
+module brain_soil_moisture() {
+    h = seal_height;
+    w = width;
+
+    bw = 28;
     bd = 5;
-    bh = 50;
+    bh = 55;
     
     cutout_tolerance = 0.4;
-   
+    cutout = 8.5;
+    t = 2.5;
     
-    difference() {
+    radius = 1;
+    
+    ww = 6;
+    wd = 8;
+    f = fit_tolerance;
+    
+    rotate([90, 0]) translate([0, bd/2, 0]) difference() {
+        sled();
         union() {
-            radius = 1;
-            translate([-bw / 2, -bd, h - radius]) roundedcube([bw, bd, bh], radius=radius);
-            translate([0, 7]) seal();
-        }
-        union() {
-            // Extra cutout to give space for chips
-            hull() {
-                translate([0, -2, 12]) roundedcube([12, 2.5, 40], true); 
-                translate([0, -2, 32]) rotate([0, 45]) roundedcube([8.5, 2.5, 8.5], true);
-            }
-
-            translate([0, 0, -22.5]) rotate([90, 0, 0]) scale([1, 1, 0.7])  minkowski() {
-                import("soil-moisture-sensor.stl");
+        
+            // Sensor cutout, with a little extra tolerance
+            translate([0, 2.5, -50]) rotate([90, 0, 0]) scale([1, 1, 0.7])  minkowski() {
+                import("soil_moisture_sensor.stl");
                 cylinder(1, cutout_tolerance, cutout_tolerance);
             }
-            translate([0, -2, 30]) rotate([90, 0, 0]) standoffs(1, 3, 18.92, 36.71);
+            
+            // Extra cutout to give space for chips
+            translate([0, 1, -8.5]) roundedcube([12, t+2.5, 30], true); 
         }
+    }
+
+    translate([-w*2, 0]) difference() {
+        seal();
+        offset = 5; // Gives a little extra room for cubecell
+        voffset = 2.52; // Fudged this... room for improvement here
+        
+        translate([0, offset, bh/2 - voffset]) scale(1.02) sled();
     } 
+    
+    module sled() {
+        difference() {
+            union() {
+                roundedcube([bw, bd, bh], radius=radius, true);
+                translate([bw/2, 0, -bh/2 + bd]) roundedcube([wd, bd, ww], radius=radius, true);
+                translate([-bw/2, 0,  -bh/2 + bd]) roundedcube([wd, bd, ww], radius=radius, true);
+            }
+                        
+            // Slice 3mm off bottom of roundedcube so that everything lines up nicely
+            translate([0, 0, -bh+3]) cube([bw + wd * 2, bd, bh], true);
+            translate([0, 0, 5]) rotate([90, 0, 0]) standoffs(1, 3, 18.92, 36.71);
+        }
+    }
 }
 
-module seal(){
 
-    ScrewThread(width*2 - thickness, seal_height, pitch=pitch, tooth_angle=tooth_angle, tolerance=tolerance);
+module seal(){
+    g = 1;
+    a = 18/4;
+    
+    difference() {
+        ScrewThread(width*2 - thickness, seal_height, pitch=pitch, tooth_angle=tooth_angle, tolerance=tolerance);
+        translate([0, 0, seal_height]) rotate([0, 180])  annular_ring_cutout(width - thickness * 2 - seal_padding);
+    }
+    // translate([0, 0, seal_height]) rotate([0, 180])  annular_ring(width - thickness * 2 - seal_padding);
 }
  
 module outer_shell(){
@@ -137,16 +164,79 @@ module outer_shell(){
 
 module inner_shell(){
     h = brain_height;
-    w = width - thickness - fit_tolerance;
+    w = width - thickness * 2 - seal_padding;
     
-    $fn=150;
+    $fn=100;
     
+    twist = 80;
+    bar = 5;
+        
+    annular_ring_height = 18 / 4;
+    a = annular_ring_height; 
     
-    
-    difference(){
-        cylinder(h,r=w);
-        cylinder(h,r=w - thickness);
+    // linear_extrude(height=bar) solid_circle(w);
+    translate([0, 0, a]) {
+        linear_extrude(height=h - a*2, twist=twist) dotted_circle(w);
+        linear_extrude(height=h - a*2, twist=-twist) dotted_circle(w);
     }
+    // translate([0, 0, h-bar]) linear_extrude(height=bar) solid_circle(w);
+
+    
+    translate([0, 0, h-a]) annular_ring(w);
+    translate([0, 0, a]) rotate([0, 180]) annular_ring(w);
+}
+
+module dotted_circle(w){
+    $fn = 100;
+    difference(){
+        solid_circle(w);
+        union() {
+            num = 10;
+            angle = 360/num;
+            for (i = [0 : num - 1]) {
+                rotate([0, 0, i * angle]) square([11, 60], center=true);
+            }
+        }
+    }
+}
+
+module solid_circle(w,t=thickness) {
+    $fn = 100;
+    difference(){
+        circle(r=w + t/2);
+        circle(r=w - t/2);
+    }
+}
+
+module annular_ring(w) {
+    // Width is 18/4 = 4.5
+    // Height is 10/4 = 2.5
+    
+    offset = w/2 - 5.37;
+    $fn = 60;
+    module poly() {
+        // translate([-offset*4, 0]) scale(1/4) polygon([[9,1],[9,16],[15,23],[13,26],[7,20],[2,19],[2,15],[5,15],[5,5],[0,5],[0,0],[5,0]]);
+        translate([-offset*4, 0]) scale(1/4) polygon([[7,0],[7,11],[10,18],[7,18],[6,15],[3,14],[3,11],[4,11],[4,4],[0,4],[0,0],[4,0]]);
+
+
+    }
+    
+    rotate_extrude(){ poly(); }
+}
+
+module annular_ring_cutout(w) {
+    
+    offset = w/2 - 5.37;
+    $fn = 60;
+    module poly() {
+        // translate([-offset*4, 0]) scale(1/4) polygon([[9,1],[9,16],[15,23],[13,26],[7,20],[2,19],[2,15],[5,15],[5,5],[0,5],[0,0],[5,0]]);
+        translate([-offset*4, 0]) scale(1/4) polygon([[11,0],[11,11],[11,18],[7,18],[6,15],[3,14],[3,11],[4,11],[4,4],[0,4],[0,0],[4,0]]);
+
+
+    }
+    
+    rotate_extrude(){ poly(); }
+
 }
 
 module sensor_holes(h){
@@ -192,3 +282,56 @@ module domed_cylinder(h,w){
         translate([0, 0, h+c]) cube([w*2, w*2, c], center=true);  // Cutoff
     }
  }
+ 
+ // More information: https://danielupshaw.com/openscad-rounded-corners/
+module roundedcube(size = [1, 1, 1], center = false, radius = 0.5, apply_to = "all") {
+    $fs = 0.15;
+	// If single value, convert to [x, y, z] vector
+	size = (size[0] == undef) ? [size, size, size] : size;
+
+	translate_min = radius;
+	translate_xmax = size[0] - radius;
+	translate_ymax = size[1] - radius;
+	translate_zmax = size[2] - radius;
+
+	diameter = radius * 2;
+
+	obj_translate = (center == false) ?
+		[0, 0, 0] : [
+			-(size[0] / 2),
+			-(size[1] / 2),
+			-(size[2] / 2)
+		];
+
+	translate(v = obj_translate) {
+		hull() {
+			for (translate_x = [translate_min, translate_xmax]) {
+				x_at = (translate_x == translate_min) ? "min" : "max";
+				for (translate_y = [translate_min, translate_ymax]) {
+					y_at = (translate_y == translate_min) ? "min" : "max";
+					for (translate_z = [translate_min, translate_zmax]) {
+						z_at = (translate_z == translate_min) ? "min" : "max";
+
+						translate(v = [translate_x, translate_y, translate_z])
+						if (
+							(apply_to == "all") ||
+							(apply_to == "xmin" && x_at == "min") || (apply_to == "xmax" && x_at == "max") ||
+							(apply_to == "ymin" && y_at == "min") || (apply_to == "ymax" && y_at == "max") ||
+							(apply_to == "zmin" && z_at == "min") || (apply_to == "zmax" && z_at == "max")
+						) {
+							sphere(r = radius);
+						} else {
+							rotate = 
+								(apply_to == "xmin" || apply_to == "xmax" || apply_to == "x") ? [0, 90, 0] : (
+								(apply_to == "ymin" || apply_to == "ymax" || apply_to == "y") ? [90, 90, 0] :
+								[0, 0, 0]
+							);
+							rotate(a = rotate)
+							cylinder(h = diameter, r = radius, center = true);
+						}
+					}
+				}
+			}
+		}
+	}
+}
