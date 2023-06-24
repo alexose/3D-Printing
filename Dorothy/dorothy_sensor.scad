@@ -29,7 +29,7 @@ use <threads.scad>
 // Parts
 render_outer_shell = 0;
 render_inner_shell = 1;
-render_brain = 0;
+render_brain = 1;
 brain_type = "soil_moisture";  // us100, dht22, or soil_moisture
 
 
@@ -49,6 +49,7 @@ battery_pack_height = 83;
 pitch = 2.8;
 tooth_angle = 50;
 seal_height = 6;
+inner_shell_width = width - thickness - seal_padding - 1;
 
 height = battery_pack_height 
     + brain_height 
@@ -134,14 +135,12 @@ module brain_soil_moisture() {
 
 
 module seal(){
-    g = 1;
-    a = 18/4;
+    w = inner_shell_width;
     
     difference() {
         ScrewThread(width*2 - thickness, seal_height, pitch=pitch, tooth_angle=tooth_angle, tolerance=tolerance);
-        translate([0, 0, seal_height]) rotate([0, 180])  annular_ring_cutout(width - thickness * 2 - seal_padding);
+        translate([0, 0, seal_height]) rotate([0, 180]) linear_extrude(3) solid_circle(w);
     }
-    // translate([0, 0, seal_height]) rotate([0, 180])  annular_ring(width - thickness * 2 - seal_padding);
 }
  
 module outer_shell(){
@@ -164,26 +163,20 @@ module outer_shell(){
 
 module inner_shell(){
     h = brain_height;
-    w = width - thickness * 2 - seal_padding;
+    w = inner_shell_width;
     
     $fn=100;
     
     twist = 80;
     bar = 5;
-        
-    annular_ring_height = 18 / 4;
-    a = annular_ring_height; 
     
-    // linear_extrude(height=bar) solid_circle(w);
-    translate([0, 0, a]) {
-        linear_extrude(height=h - a*2, twist=twist) dotted_circle(w);
-        linear_extrude(height=h - a*2, twist=-twist) dotted_circle(w);
+    linear_extrude(height=bar) solid_circle(w);
+    translate([0, 0, bar]) {
+        linear_extrude(height=h - bar*2, twist=twist) dotted_circle(w);
+        linear_extrude(height=h - bar*2, twist=-twist) dotted_circle(w);
     }
-    // translate([0, 0, h-bar]) linear_extrude(height=bar) solid_circle(w);
+    translate([0, 0, h-bar]) linear_extrude(height=bar) solid_circle(w);
 
-    
-    translate([0, 0, h-a]) annular_ring(w);
-    translate([0, 0, a]) rotate([0, 180]) annular_ring(w);
 }
 
 module dotted_circle(w){
@@ -194,7 +187,7 @@ module dotted_circle(w){
             num = 10;
             angle = 360/num;
             for (i = [0 : num - 1]) {
-                rotate([0, 0, i * angle]) square([11, 60], center=true);
+                rotate([0, 0, i * angle]) square([11.5, 60], center=true);
             }
         }
     }
@@ -203,40 +196,9 @@ module dotted_circle(w){
 module solid_circle(w,t=thickness) {
     $fn = 100;
     difference(){
-        circle(r=w + t/2);
-        circle(r=w - t/2);
+        circle(r=w + t/4);
+        circle(r=w - t/4);
     }
-}
-
-module annular_ring(w) {
-    // Width is 18/4 = 4.5
-    // Height is 10/4 = 2.5
-    
-    offset = w/2 - 5.37;
-    $fn = 60;
-    module poly() {
-        // translate([-offset*4, 0]) scale(1/4) polygon([[9,1],[9,16],[15,23],[13,26],[7,20],[2,19],[2,15],[5,15],[5,5],[0,5],[0,0],[5,0]]);
-        translate([-offset*4, 0]) scale(1/4) polygon([[7,0],[7,11],[10,18],[7,18],[6,15],[3,14],[3,11],[4,11],[4,4],[0,4],[0,0],[4,0]]);
-
-
-    }
-    
-    rotate_extrude(){ poly(); }
-}
-
-module annular_ring_cutout(w) {
-    
-    offset = w/2 - 5.37;
-    $fn = 60;
-    module poly() {
-        // translate([-offset*4, 0]) scale(1/4) polygon([[9,1],[9,16],[15,23],[13,26],[7,20],[2,19],[2,15],[5,15],[5,5],[0,5],[0,0],[5,0]]);
-        translate([-offset*4, 0]) scale(1/4) polygon([[11,0],[11,11],[11,18],[7,18],[6,15],[3,14],[3,11],[4,11],[4,4],[0,4],[0,0],[4,0]]);
-
-
-    }
-    
-    rotate_extrude(){ poly(); }
-
 }
 
 module sensor_holes(h){
