@@ -16,8 +16,8 @@ cell_height = 65;
 cell_radius = 18 / 2 + tolerance;
 
 
-plate();
-// translate([-plate_radius*2 - 3, 0]) cap();
+// plate();
+translate([-plate_radius*2 - 3, 0]) cap_with_ring_cutout();
 // translate([plate_radius*2 + 3, 0]) tube();
 
 module plate() {
@@ -91,17 +91,18 @@ module plate() {
             radial_multiply(p) translate([0, 0, 0]) cylinder(3, r = tab_radius);
 
         }
-        
     }
 }
-module cap() {
+
+module cap(bottom_padding = 0) {
     t = 1.4; // thickness
     h = thread_height + t;
     r = plate_radius + tolerance + t;
     f = tolerance; // tolerance fudge factor for plate
+    b = bottom_padding;
     
-    translate([0, 0, t]) ScrewHole(r*2 + f, thread_height, pitch=3, tooth_angle=55) {
-        translate([0, 0, -t]) rounded_cylinder(r=r+t,h=h,n=2,$fn=60);
+    translate([0, 0, t + b]) ScrewHole(r*2 + f, thread_height, pitch=3, tooth_angle=55) {
+        translate([0, 0, -t - b]) rounded_cylinder(r=r+t,h=h+b,n=1,$fn=60);
     }
     
     module rounded_cylinder(r,h,n) {
@@ -110,8 +111,23 @@ module cap() {
         square([n,h]);
       }
     }
+}
+
+module cap_with_ring_cutout() {
+    bw = 28;
+    bd = 5;
+    bh = 65;
+    radius = 1;
+    offset = 5; // Gives a little extra room for cubecell
+    
+    difference() {
+        cap(3);
+        translate([0, offset, -bh/2 + 3]) scale(1.02) roundedcube([bw, bd, bh], radius=radius, true);
+        cylinder(10, 2, 2);
+    }
 
 }
+
 module tube() {
     t = 1.4; // thickness
     f = tolerance;
@@ -160,4 +176,57 @@ module radial_multiply(distance_apart) {
         rotate([0, 0, i]) translate([p, 0]) children();
         rotate([0, 0, i]) translate([p, 0]) children();
     }
+}
+
+ // More information: https://danielupshaw.com/openscad-rounded-corners/
+module roundedcube(size = [1, 1, 1], center = false, radius = 0.5, apply_to = "all") {
+    $fs = 0.15;
+	// If single value, convert to [x, y, z] vector
+	size = (size[0] == undef) ? [size, size, size] : size;
+
+	translate_min = radius;
+	translate_xmax = size[0] - radius;
+	translate_ymax = size[1] - radius;
+	translate_zmax = size[2] - radius;
+
+	diameter = radius * 2;
+
+	obj_translate = (center == false) ?
+		[0, 0, 0] : [
+			-(size[0] / 2),
+			-(size[1] / 2),
+			-(size[2] / 2)
+		];
+
+	translate(v = obj_translate) {
+		hull() {
+			for (translate_x = [translate_min, translate_xmax]) {
+				x_at = (translate_x == translate_min) ? "min" : "max";
+				for (translate_y = [translate_min, translate_ymax]) {
+					y_at = (translate_y == translate_min) ? "min" : "max";
+					for (translate_z = [translate_min, translate_zmax]) {
+						z_at = (translate_z == translate_min) ? "min" : "max";
+
+						translate(v = [translate_x, translate_y, translate_z])
+						if (
+							(apply_to == "all") ||
+							(apply_to == "xmin" && x_at == "min") || (apply_to == "xmax" && x_at == "max") ||
+							(apply_to == "ymin" && y_at == "min") || (apply_to == "ymax" && y_at == "max") ||
+							(apply_to == "zmin" && z_at == "min") || (apply_to == "zmax" && z_at == "max")
+						) {
+							sphere(r = radius);
+						} else {
+							rotate = 
+								(apply_to == "xmin" || apply_to == "xmax" || apply_to == "x") ? [0, 90, 0] : (
+								(apply_to == "ymin" || apply_to == "ymax" || apply_to == "y") ? [90, 90, 0] :
+								[0, 0, 0]
+							);
+							rotate(a = rotate)
+							cylinder(h = diameter, r = radius, center = true);
+						}
+					}
+				}
+			}
+		}
+	}
 }

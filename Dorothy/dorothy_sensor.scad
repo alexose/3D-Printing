@@ -28,7 +28,6 @@ use <threads.scad>
 
 // Parts
 render_outer_shell = 0;
-render_inner_shell = 1;
 render_brain = 1;
 brain_type = "soil_moisture";  // us100, dht22, or soil_moisture
 
@@ -49,7 +48,6 @@ battery_pack_height = 83;
 pitch = 2.8;
 tooth_angle = 50;
 seal_height = 6;
-inner_shell_width = width - thickness - seal_padding - 1;
 
 height = battery_pack_height 
     + brain_height 
@@ -59,7 +57,6 @@ height = battery_pack_height
 offset = width * 2.25;
 if (render_brain) translate([0, 0, 0]) brain();
 if (render_outer_shell) translate([offset, 0, 0]) outer_shell();
-if (render_inner_shell) translate([0, offset, 0]) inner_shell();
 
 module brain() {
     if (brain_type == "us100") brain_us100();
@@ -83,7 +80,7 @@ module brain_soil_moisture() {
 
     bw = 28;
     bd = 5;
-    bh = 55;
+    bh = 65;
     
     cutout_tolerance = 0.4;
     cutout = 8.5;
@@ -92,7 +89,7 @@ module brain_soil_moisture() {
     radius = 1;
     
     ww = 6;
-    wd = 8;
+    wd = 6;
     f = fit_tolerance;
     
     rotate([90, 0]) translate([0, bd/2, 0]) difference() {
@@ -122,12 +119,16 @@ module brain_soil_moisture() {
         difference() {
             union() {
                 roundedcube([bw, bd, bh], radius=radius, true);
-                translate([bw/2, 0, -bh/2 + bd]) roundedcube([wd, bd, ww], radius=radius, true);
-                translate([-bw/2, 0,  -bh/2 + bd]) roundedcube([wd, bd, ww], radius=radius, true);
+                
+                // Add "dogbones" which help lock the sled in place
+                translate([bw/2, 0, -bh/2 + wd/2]) roundedcube([wd, bd, ww], radius=radius, true);
+                translate([-bw/2, 0,  -bh/2 + wd/2]) roundedcube([wd, bd, ww], radius=radius, true);
             }
                         
-            // Slice 3mm off bottom of roundedcube so that everything lines up nicely
-            translate([0, 0, -bh+3]) cube([bw + wd * 2, bd, bh], true);
+            // Slice 2mm off bottom of roundedcube so that everything lines up nicely
+            translate([0, 0, -bh+2]) cube([bw + wd * 2, bd, bh], true);
+            
+            // Mounting holes for CubeCell
             translate([0, 0, 5]) rotate([90, 0, 0]) standoffs(1, 3, 18.92, 36.71);
         }
     }
@@ -135,12 +136,7 @@ module brain_soil_moisture() {
 
 
 module seal(){
-    w = inner_shell_width;
-    
-    difference() {
-        ScrewThread(width*2 - thickness, seal_height, pitch=pitch, tooth_angle=tooth_angle, tolerance=tolerance);
-        translate([0, 0, seal_height]) rotate([0, 180]) linear_extrude(3) solid_circle(w);
-    }
+    ScrewThread(width*2 - thickness, seal_height, pitch=pitch, tooth_angle=tooth_angle, tolerance=tolerance);
 }
  
 module outer_shell(){
@@ -158,46 +154,6 @@ module outer_shell(){
             domed_cylinder(h,w + t*2);
             domed_cylinder(h-t,w);
         }
-    }
-}
-
-module inner_shell(){
-    h = brain_height;
-    w = inner_shell_width;
-    
-    $fn=100;
-    
-    twist = 80;
-    bar = 5;
-    
-    linear_extrude(height=bar) solid_circle(w);
-    translate([0, 0, bar]) {
-        linear_extrude(height=h - bar*2, twist=twist) dotted_circle(w);
-        linear_extrude(height=h - bar*2, twist=-twist) dotted_circle(w);
-    }
-    translate([0, 0, h-bar]) linear_extrude(height=bar) solid_circle(w);
-
-}
-
-module dotted_circle(w){
-    $fn = 100;
-    difference(){
-        solid_circle(w);
-        union() {
-            num = 10;
-            angle = 360/num;
-            for (i = [0 : num - 1]) {
-                rotate([0, 0, i * angle]) square([11.5, 60], center=true);
-            }
-        }
-    }
-}
-
-module solid_circle(w,t=thickness) {
-    $fn = 100;
-    difference(){
-        circle(r=w + t/4);
-        circle(r=w - t/4);
     }
 }
 
