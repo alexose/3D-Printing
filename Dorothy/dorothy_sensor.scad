@@ -109,8 +109,8 @@ module brain_soil_moisture() {
 
     translate([-w*2, 0]) difference() {
         seal();
-        offset = 5; // Gives a little extra room for cubecell
-        voffset = 2.52; // Fudged this... room for improvement here
+        offset = 6; // Gives a little extra breathing room for CubeCell
+        voffset = 1.39; // Fudged this... room for improvement here
         
         translate([0, offset, bh/2 - voffset]) scale(1.02) sled();
     } 
