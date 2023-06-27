@@ -1,5 +1,7 @@
 # Victorian Wine Cradle
 
+![A photo of the 3d printed Victorian Wine Cradle](/photo.jpg)
+
 Welcome to the Victorian Wine Cradle project. This endeavor seeks to create a functional, 3D-printable Victorian wine
 cradle. I was inspired to create this because antique versions of this unique accessory are hard to find. This project
 aims to allow everyone the ability to decant a bottle of old wine with the style and elegance of an English butler.
