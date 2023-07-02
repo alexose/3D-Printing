@@ -7,7 +7,7 @@ Dorothy Sensor
 
 The Dorothy Sensor Platform consists of three parts:
 
-  1. Brain: A threaded disc on which the sensor and and CubecCell board is mounted
+  1. Brain:  Where the sensors and CubeCell board are mounted
   2. Battery Pack:  Three 18650 cells placed in a Cylindrical Battery Holder (see: https://www.thingiverse.com/thing:6080710)
   3. Outer Shell: The threaded cylinder that covers the whole assembly and protects it from the elements
 
@@ -28,7 +28,7 @@ use <threads.scad>
 // Parts
 render_outer_shell = 1;
 render_brain = 1;
-brain_type = "us100";  // us100, dht22, or soil_moisture
+brain_type = "dht22";  // us100, dht22, or soil_moisture
 
 
 // Adjustable dimensions
@@ -101,20 +101,15 @@ module brain_us100() {
             }
         }
         
-        // Slice out a piece to make room for buttons
-        slice_offset = -2;
-        slice_height = 3;
-        rotate([0, 0, 90]) cube([bh, bw, vh], center=true);
-        
         union(){
             r = 1; // Mounting hole radius
             o = 4; // Mounting hole offset
             d = 5; // Mounting hole depth 
-            translate([0, 0, inner_height - d]) standoffs(r, d, sw - o, sh - o);              
+            translate([0, 0, h - d]) standoffs(r, d, sw - o, sh - o);              
         }
     }
     
-    sled_mount();
+    sled_mount(bw, bh);
     
     module oval_cutout(){
         hull() translate([0, 0, -3.5]) standoffs(2, 2, 10, sensor_height-3);
@@ -130,19 +125,41 @@ module brain_us100() {
         translate([-hole_distance/2, 0, 0]) cylinder(h*2, hole_radius*f, hole_radius*f);
     }
     
-    module sled_mount() {
-        mh = 5;
-        translate([0, 0, h + mh/2 - 1]) difference() {
-            rotate([0, 0, 90]) roundedcube([45, 13, mh], center=true);
-            translate([0, 0, 29.5]) rotate([0, 0, 90]) sled();
-            cube([sw, sh, 100], center=true);
-        }
-    }
-    translate([-60, 0]) rotate([90, 0, 0]) sled();
+    translate([-60, 0, board_depth/2]) rotate([90, 180, 0]) sled(board_height - seal_height - 2);
     
 }
 module brain_dht22() {
-    seal();
+    
+    h = seal_height;
+    w = width;
+    
+    sensor_width = 40 * 1.05; // fudged a bit
+    sensor_height = 16 * 1.07;
+    sensor_depth = 4;
+    
+    sw = sensor_width;
+    sh = sensor_height;
+    sd = sensor_depth;
+
+    bw = board_width;
+    bh = board_height;
+    
+    difference() {
+        union() {
+            
+            difference() {
+                seal();
+                translate([0, 0, h - (sd / 2) ]) {
+                    translate([0, 0, 1]) {
+                        cube([sw, sh, 3], center=true);
+                    }
+                }
+                translate([4, 0]) cube([20, 16, 20], center=true); 
+            }
+        }
+    }
+    
+    sled_mount(sw, sh);
 }
 
 module brain_soil_moisture() {
@@ -183,18 +200,17 @@ module brain_soil_moisture() {
         seal();
         offset = 6; // Gives a little extra breathing room for CubeCell
         voffset = 1.39; // Fudged this... room for improvement here
-        
         translate([0, offset, bh/2 - voffset]) scale(1.02) sled();
-    } 
+    }
 }
+
 
 module seal(){
     ScrewThread(width*2 - thickness, seal_height, pitch=pitch, tooth_angle=tooth_angle, tolerance=tolerance);
 }
 
-module sled() {
+module sled(bh=board_height) {
     bw = board_width;
-    bh = board_height;
     bd = board_depth;
     
     h = seal_height;
@@ -218,12 +234,21 @@ module sled() {
         translate([0, 0, -bh+2]) cube([bw + wd * 2, bd, bh], true);
         
         // Mounting holes for CubeCell
-        translate([0, 0, 5]) rotate([90, 0, 0]) standoffs(1, 3, 18.92, 36.71);
+        translate([0, 0, 3]) rotate([90, 0, 0]) standoffs(1, 3, 18.92, 36.71);
+    }
+}
+
+module sled_mount(sw, sh) {
+    mh = 5;
+    h = seal_height;
+    translate([0, 0, h + mh/2 - 1]) difference() {
+        rotate([0, 0, 90]) roundedcube([45, 13, mh], center=true);
+        translate([0, 0, 29.5]) rotate([0, 0, 90]) sled();
+        cube([sw, sh, 100], center=true);
     }
 }
  
 module outer_shell(){
-
     h = height;
     w = width;
     t = thickness/2;
