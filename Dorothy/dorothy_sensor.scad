@@ -7,7 +7,9 @@ Dorothy Sensor
 
 The Dorothy Sensor Platform consists of three parts:
 
-  1. Brain:  Where the sensors and CubeCell board are mounted
+  1. Brain:  Where the sensors and CubeCell board are mounted.  Depending on the needs of the sensor,
+    this usually is comprised of a "seal" (the threaded piece with the proper hole cut out) and a
+    "sled" (the plate that the CubeCell board is attached to).
   2. Battery Pack:  Three 18650 cells placed in a Cylindrical Battery Holder (see: https://www.thingiverse.com/thing:6080710)
   3. Outer Shell: The threaded cylinder that covers the whole assembly and protects it from the elements
 
@@ -28,7 +30,7 @@ use <threads.scad>
 // Parts
 render_outer_shell = 1;
 render_brain = 1;
-brain_type = "dht22";  // us100, dht22, or soil_moisture
+brain_type = "distance";  // distance, temperature_humidity, or soil_moisture
 
 
 // Adjustable dimensions
@@ -70,12 +72,18 @@ if (render_brain) translate([0, 0, 0]) brain();
 if (render_outer_shell) translate([offset, 0, 0]) outer_shell();
 
 module brain() {
-    if (brain_type == "us100") brain_us100();
-    if (brain_type == "dht22") brain_dht22();
+    if (brain_type == "distance") brain_distance();
+    if (brain_type == "temperature_humidity") brain_temperature_humidity();
     if (brain_type == "soil_moisture") brain_soil_moisture();
 }
 
-module brain_us100() {
+module brain_distance() {
+    // Distance module.  This is based on the US-100 ultrasonic sensor, available for about $2 on
+    // ebay.  I prefer this sensor over other ultrasonic sensors because it has dedicated on-board 
+    // timers, and outputs directly to serial.  
+    //
+    // The US-100 claims to work down to 2.4V, although it might be a good idea to add a 5V level converter.
+    
     h = seal_height;
     w = width;
     
@@ -86,6 +94,9 @@ module brain_us100() {
     sw = sensor_width;
     sh = sensor_height;
     sd = sensor_depth;
+    
+    bw = board_width;
+    bh = board_height;
 
     difference() {
         union() {
@@ -98,6 +109,7 @@ module brain_us100() {
                     }
                 }
                 sensor_holes(h);
+                translate([0, 14, bh-1]) scale([1.02, 1.02, 2]) sled();
             }
         }
         
@@ -108,8 +120,6 @@ module brain_us100() {
             translate([0, 0, h - d]) standoffs(r, d, sw - o, sh - o);              
         }
     }
-    
-    sled_mount(bw, bh);
     
     module oval_cutout(){
         hull() translate([0, 0, -3.5]) standoffs(2, 2, 10, sensor_height-3);
@@ -125,10 +135,10 @@ module brain_us100() {
         translate([-hole_distance/2, 0, 0]) cylinder(h*2, hole_radius*f, hole_radius*f);
     }
     
-    translate([-60, 0, board_depth/2]) rotate([90, 180, 0]) sled(board_height - seal_height - 2);
-    
+    translate([-60, 0, board_depth/2]) rotate([90, 180, 0]) sled(board_height - seal_height + 1);    
 }
-module brain_dht22() {
+module brain_temperature_humidity() {
+    // Temperature and humidity module.  This is based on the ubiquitous DHT22, which costs about $1.60.
     
     h = seal_height;
     w = width;
@@ -163,8 +173,11 @@ module brain_dht22() {
 }
 
 module brain_soil_moisture() {
-    // The soil moisture sensor is mounted vertically.  To make this work, the 'brain' is separated
-    // into two pieces that snap together:  The bottom piece (referred to as 'seal' in this code)
+    // Soil moisture module.  This hygrometer is based on the wonderful soil moisture sensor from
+    // catnip electronics, and costs about $10:
+    // https://www.tindie.com/products/miceuz/i2c-soil-moisture-sensor/
+    //
+    // The soil moisture sensor is mounted vertically, so the "spike" end sticks out of the bottom.
     h = seal_height;
     w = width;
     
