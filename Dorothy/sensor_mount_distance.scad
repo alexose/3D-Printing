@@ -15,9 +15,6 @@ overhang = 4;
 board_width = 36.8;
 board_height = 19.1;
 
-sensor_width = 43.2 * 1.05; // fudged a bit
-sensor_height = 18.8 * 1.07;
-sensor_depth = 3;
 
 standoff_thickness = 2.5;
 

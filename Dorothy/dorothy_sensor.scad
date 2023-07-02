@@ -5,12 +5,11 @@ Dorothy Sensor
 
 (see also: Dorothy Hub)
 
-The Dorothy Sensor Platform consists of four parts:
+The Dorothy Sensor Platform consists of three parts:
 
   1. Brain: A threaded disc on which the sensor and and CubecCell board is mounted
   2. Battery Pack:  Three 18650 cells placed in a Cylindrical Battery Holder (see: https://www.thingiverse.com/thing:6080710)
   3. Outer Shell: The threaded cylinder that covers the whole assembly and protects it from the elements
-  4. Inner Shell (optional):  A hollow cylinder that fits around the Brain and helps snug everything in place
 
 The Brain can come in many different shapes, depending on the type of sensor(s) you want to use.
 This file includes variations for:
@@ -27,9 +26,9 @@ With more on the way!
 use <threads.scad>
 
 // Parts
-render_outer_shell = 0;
+render_outer_shell = 1;
 render_brain = 1;
-brain_type = "soil_moisture";  // us100, dht22, or soil_moisture
+brain_type = "us100";  // us100, dht22, or soil_moisture
 
 
 // Adjustable dimensions
@@ -43,12 +42,24 @@ seal_padding = 0.5;  // Extra padding to allow annular seal to fit
 
 
 // Non-adjustable dimensions
-brain_height = 55; // Height of inner "brain" compartment
-battery_pack_height = 83;
+battery_pack_height = 75;
 pitch = 2.8;
 tooth_angle = 50;
 seal_height = 6;
+board_width = 28;
+board_depth = 5;
 
+// Note that while the board_height is 64mm, it goes through the 6mm "seal" and sticks about 3mm 
+// into the battery pack.  So the total height of the brain ends up being 55mm.
+board_height = 64;
+    
+
+// Height of inner "brain" compartment.  This needs to be a standard height so that shells are all
+// compatible with one another.  
+brain_height = 55; 
+
+
+// The outer shell height should add up to the total height of all components smooshed together
 height = battery_pack_height 
     + brain_height 
     + seal_height
@@ -65,29 +76,90 @@ module brain() {
 }
 
 module brain_us100() {
-    seal();
+    h = seal_height;
+    w = width;
+    
+    sensor_width = 44 + fit_tolerance;
+    sensor_height = 20 + fit_tolerance;
+    sensor_depth = 3;
+
+    sw = sensor_width;
+    sh = sensor_height;
+    sd = sensor_depth;
+
+    difference() {
+        union() {
+            difference() {
+                seal();
+                translate([0, 0, h - (sd / 2) ]) {
+                    translate([0, 0, 1]) {
+                        cube([sw, sh, 3], center=true);
+                        oval_cutout();
+                    }
+                }
+                sensor_holes(h);
+            }
+        }
+        
+        // Slice out a piece to make room for buttons
+        slice_offset = -2;
+        slice_height = 3;
+        rotate([0, 0, 90]) cube([bh, bw, vh], center=true);
+        
+        union(){
+            r = 1; // Mounting hole radius
+            o = 4; // Mounting hole offset
+            d = 5; // Mounting hole depth 
+            translate([0, 0, inner_height - d]) standoffs(r, d, sw - o, sh - o);              
+        }
+    }
+    
+    sled_mount();
+    
+    module oval_cutout(){
+        hull() translate([0, 0, -3.5]) standoffs(2, 2, 10, sensor_height-3);
+    }
+    
+    module sensor_holes(h){
+        hole_radius = 16/2 * 1.01;
+        hole_distance = 23.75;
+        f = 1.05;
+        $fn = 150;
+        
+        translate([hole_distance/2, 0, 0]) cylinder(h*2, hole_radius*f, hole_radius*f);
+        translate([-hole_distance/2, 0, 0]) cylinder(h*2, hole_radius*f, hole_radius*f);
+    }
+    
+    module sled_mount() {
+        mh = 5;
+        translate([0, 0, h + mh/2 - 1]) difference() {
+            rotate([0, 0, 90]) roundedcube([45, 13, mh], center=true);
+            translate([0, 0, 29.5]) rotate([0, 0, 90]) sled();
+            cube([sw, sh, 100], center=true);
+        }
+    }
+    translate([-60, 0]) rotate([90, 0, 0]) sled();
+    
 }
 module brain_dht22() {
     seal();
 }
 
-// The soil moisture sensor must be mounted vertically.  To make this work, the 'brain' is separated
-// into two pieces that snap together:  The bottom piece (referred to as 'seal' in this code)
-
 module brain_soil_moisture() {
+    // The soil moisture sensor is mounted vertically.  To make this work, the 'brain' is separated
+    // into two pieces that snap together:  The bottom piece (referred to as 'seal' in this code)
     h = seal_height;
     w = width;
-
-    bw = 28;
-    bd = 5;
-    bh = 65;
+    
+    bw = board_width;
+    bd = board_depth;
+    bh = board_height;
     
     cutout_tolerance = 0.4;
     cutout = 8.5;
     t = 2.5;
     
     radius = 1;
-    
     ww = 6;
     wd = 6;
     f = fit_tolerance;
@@ -114,32 +186,44 @@ module brain_soil_moisture() {
         
         translate([0, offset, bh/2 - voffset]) scale(1.02) sled();
     } 
-    
-    module sled() {
-        difference() {
-            union() {
-                roundedcube([bw, bd, bh], radius=radius, true);
-                
-                // Add "dogbones" which help lock the sled in place
-                translate([bw/2, 0, -bh/2 + wd/2]) roundedcube([wd, bd, ww], radius=radius, true);
-                translate([-bw/2, 0,  -bh/2 + wd/2]) roundedcube([wd, bd, ww], radius=radius, true);
-            }
-                        
-            // Slice 2mm off bottom of roundedcube so that everything lines up nicely
-            translate([0, 0, -bh+2]) cube([bw + wd * 2, bd, bh], true);
-            
-            // Mounting holes for CubeCell
-            translate([0, 0, 5]) rotate([90, 0, 0]) standoffs(1, 3, 18.92, 36.71);
-        }
-    }
 }
-
 
 module seal(){
     ScrewThread(width*2 - thickness, seal_height, pitch=pitch, tooth_angle=tooth_angle, tolerance=tolerance);
 }
+
+module sled() {
+    bw = board_width;
+    bh = board_height;
+    bd = board_depth;
+    
+    h = seal_height;
+    w = width;
+    
+    radius = 1;
+    ww = 6;
+    wd = 6;
+    f = fit_tolerance;
+    
+    difference() {
+        union() {
+            roundedcube([bw, bd, bh], radius=radius, true);
+            
+            // Add "dogbones" which help lock the sled in place
+            translate([bw/2, 0, -bh/2 + wd/2]) roundedcube([wd, bd, ww], radius=radius, true);
+            translate([-bw/2, 0,  -bh/2 + wd/2]) roundedcube([wd, bd, ww], radius=radius, true);
+        }
+                    
+        // Slice 2mm off bottom of roundedcube so that everything lines up nicely
+        translate([0, 0, -bh+2]) cube([bw + wd * 2, bd, bh], true);
+        
+        // Mounting holes for CubeCell
+        translate([0, 0, 5]) rotate([90, 0, 0]) standoffs(1, 3, 18.92, 36.71);
+    }
+}
  
 module outer_shell(){
+
     h = height;
     w = width;
     t = thickness/2;
@@ -157,15 +241,6 @@ module outer_shell(){
     }
 }
 
-module sensor_holes(h){
-    hole_radius = 16/2 * 1.01;
-    hole_distance = 23.75;
-    f = 1.05;
-    $fn = 150;
-    
-    translate([hole_distance/2, 0, 0]) cylinder(h*2, hole_radius*f, hole_radius*f);
-    translate([-hole_distance/2, 0, 0]) cylinder(h*2, hole_radius*f, hole_radius*f);
-}
 
 module standoffs(r, depth, height, width) {
     $fn = 20;
