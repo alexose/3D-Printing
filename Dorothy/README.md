@@ -11,13 +11,29 @@ hub.
 -   **Long Range**: Capable of a range of at least 1/4 mile (400m).
 -   **Long Battery Life**: Designed for a battery life of one year.
 -   **Easy to Assemble/Disassemble**: From the moment you're done printing, it takes about 20 minutes to assemble a
-    working Dorothy, requiring minimal tools and skill. Just mount the components, screw it together, and
-    you're set.
+    working Dorothy, requiring minimal tools and skill. Just mount the components, screw it together, and you're set.
 -   **Low Cost**: Around $25 per unit, including batteries
 -   **Easy-to-read Codebase**: The codebase is designed to be compact and easy to understand.
 -   **Open Licensing**: Dorothy comes with a fully open license.
 
-## Assembly
+## Getting started
+
+In order to get started, you'll need a few things:
+
+-   A 3D Printer
+-   Quality filament
+-   Solid core wire
+-   M2 screws
+
+That's it!
+
+## Dorothy Hub
+
+The hub is a bridge between the battery-powered sensors and your WiFi network.
+
+## The Dorothy Protocol
+
+## Sensor assembly
 
 **NOTE:** Soldering is required for the CubeCell board.
 
