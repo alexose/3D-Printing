@@ -8,27 +8,29 @@ plate_radius = 21.6;
 // distance_apart = 18;
 // plate_radius = 30;
 
-$fn = 100;
+$fn = 60;
 plate_height = 4;
 thread_height = plate_height*2;
 tolerance = 0.3;
 cell_height = 65;
 cell_radius = 18 / 2 + tolerance;
+hole_radius = 2.2;
 
-render_plate = 0;
+render_plate = 1;
 render_cap_with_ring_cutout = 0;
-render_cap = 0;
-render_tube = 0;
+render_cap_with_hole = 0;
+render_cap = 1;
+render_tube = 1;
 
 if (render_plate) plate();
 if (render_cap_with_ring_cutout) translate([-plate_radius*2 - 3, 0]) cap_with_ring_cutout();
+if (render_cap_with_hole) translate([-plate_radius*2 - 3, 0]) cap_with_hole();
 if (render_cap) translate([-plate_radius*2 - 3, 0]) cap();
 if (render_tube) translate([plate_radius*2 + 3, 0]) tube();
 
 module plate() {
     p = distance_apart;
     h = plate_height;
-    hole_radius = 1.5; // Size of hole in middle
     tab_radius = 6;
     
     difference() {
@@ -96,6 +98,13 @@ module plate() {
             radial_multiply(p) translate([0, 0, 0]) cylinder(3, r = tab_radius);
 
         }
+    }
+}
+
+module cap_with_hole() {
+    difference() {
+        cap();
+        cylinder(10, r=hole_radius);
     }
 }
 
