@@ -130,11 +130,12 @@ module battery_holder(h=battery_pack_height, r=battery_pack_radius + fit_toleran
     $fn = 60;
     t = thickness;
     w = 20;
+    f = fit_tolerance;
     
     difference() {
-        cylinder(h, r=r);
-        cylinder(h+t, r=r-t);
-        if (cutout) cube([r*2+t, w+t, h*2+t], center=true);
+        cylinder(h, r=r+t+f);
+        cylinder(h+t, r=r+f);
+        if (cutout) cube([r*3, w+t, h*2+t], center=true);
     }
 }
 
@@ -151,7 +152,7 @@ module solenoid_standoffs(radius_offset=0, t=thickness) {
 }
 
 module solenoid_hole() {
-    hull() solenoid_standoffs(-2.9);
+    hull() solenoid_standoffs(-1);
 }
 
 
