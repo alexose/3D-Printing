@@ -1,11 +1,11 @@
-width = 175;
-height = 80;
+width = 168;
+height = 74;
 depth = 76;
-thickness = 1.2;
-roundness = 8;
+thickness = 1.6;
+roundness = 5;
 fit_tolerance = 0.5;
 
-lid_depth = depth * 0.4;
+lid_depth = depth * 0.3;
 
 battery_pack_radius = 25;
 battery_pack_height = 75; 
@@ -13,9 +13,9 @@ space_between_batteries = 30;
 
 board_standoff_distance_x = 45;
 board_standoff_distance_y = 66;
-board_standoff_height = 18;
+board_standoff_height = 60;
 
-button_hole_radius = 8;
+button_hole_radius = 8.4;
 window_radius = 3.5;
 distance_between_button_and_window = 27;
 
@@ -35,15 +35,11 @@ module lid() {
     d2 = d1 - t*2;
     r = roundness;
     s = space_between_batteries + battery_pack_radius;
-
-    x = board_standoff_distance_x;
-    y = board_standoff_distance_y;
-    z = board_standoff_height;
     
     r2 = button_hole_radius;
     o = distance_between_button_and_window / 2;
     
-    r3 = battery_pack_radius + t + f;
+    r3 = battery_pack_radius + t + f + f;
     
     union() {
         translate([0, 0, d1/2]) difference() { 
@@ -62,22 +58,14 @@ module lid() {
             translate([0, 0, -d1/2]) branding();
         
         }
-        
-
         translate([-s, 0, t]) battery_holder(13, r3, true);
         translate([s, 0, t]) battery_holder(13, r3, true);
-        
-        translate([0, 0, t]) difference() {
-            standoffs(4, z, x, y);
-            standoffs(1, z, x, y);
-        }
-
      }
 }
 
 module branding() {   
-    translate([70, 12, -0.1]) linear_extrude(0.8) rotate([0, 180]) text("Fill-o-tron 9000", size=15);
-    translate([70, -20, -0.1]) linear_extrude(0.8) rotate([0, 180]) text("By OSELABS", size=6);
+    translate([76, 13, -0.1]) linear_extrude(0.8) rotate([0, 180]) text("Fill-o-tron 9000", size=15, font="DejaVu Sans:style=bold");
+    translate([-20, -25, -0.1]) linear_extrude(0.8) rotate([0, 180]) text("By OSELABS", size=6, font="DejaVu Sans:style=bold");;
 }
 
 module shell() {
@@ -91,6 +79,10 @@ module shell() {
     w2 = w1 - t*2;
     h2 = h1 - t*2;
     d2 = d1 - t*2;
+    
+    x = board_standoff_distance_x;
+    y = board_standoff_distance_y;
+    z = board_standoff_height;
 
     s = space_between_batteries + battery_pack_radius;
     
@@ -109,6 +101,16 @@ module shell() {
          }
          solenoid_standoffs(-1, t);
     }
+    
+    translate([0, 0, t]) {
+        intersection() {
+             translate([0, 0, 50]) roundedcube([w1, h1, 100], center=true, radius=r);
+            difference() {
+                standoffs(4, z, x, y);
+                standoffs(1, z, x, y);
+            }
+        }
+    }
 }
 
 module slice() {
@@ -121,11 +123,9 @@ module slice() {
     difference() {
         union() children();
         translate([0, 0, -r + 0.1]) cube([w,h,r*2], center=true);
-    }
-        
+    }   
 }
     
-
 module battery_holder(h=battery_pack_height, r=battery_pack_radius + fit_tolerance, cutout=false) {
     $fn = 60;
     t = thickness;

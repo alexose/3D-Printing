@@ -16,29 +16,40 @@ hub.
 -   **Easy-to-read Codebase**: The codebase is designed to be compact and easy to understand.
 -   **Open Licensing**: Dorothy comes with a fully open license.
 
-## Getting started
+## How to build
 
-In order to get started, you'll need a few things:
+Begin by sourcing the materials you'll need to build a [Hub](#hub) and at least one [Sensor](#sensor):
 
--   A 3D Printer
--   Quality filament
--   Solid core wire
--   M2 screws
+-   [Heltec WiFi LoRa 32 v3](https://heltec.org/project/wifi-kit-32-v3/)
+-   [Heltec CubeCell AB01 v2](https://heltec.org/project/htcc-ab01-v2/)
+-   At least three [18650 cells](https://www.amazon.com/s?k=18650)
+-   Some [solid core wire](https://www.amazon.com/s?k=solid+core+wire)
+-   [M2 screws](https://www.amazon.com/s?k=m2+screws+phillips) of assorted lengths
 
-That's it!
+And your choice of:
 
-## Dorothy Hub
+-   [DHT22 Temperature/Humidity Sensor](https://www.amazon.com/dht22/s?k=dht22)
+-   [US-100 Ultrasonic Distance Sensor](https://www.amazon.com/s?k=us100+sensor&ref=nb_sb_noss)
+-   [I2C Soil Moisture Sensor](https://www.tindie.com/products/miceuz/i2c-soil-moisture-sensor/)
+
+Begin by printing the enclosure to the Dorothy Hub.
+
+<h2 name="hub">Dorothy Hub</h2>
 
 The hub is a bridge between the battery-powered sensors and your WiFi network.
 
-## The Dorothy Protocol
+The current version of the hub uses a [Heltec WiFi LoRa 32](https://heltec.org/project/wifi-kit-32-v3/) board instead of
+a CubeCell. While it is slightly more expensive, the WiFi LoRa 32 has an included OLED screen, which makes it easier to
+debug. The same code should also work on the CubeCell, but I haven't tested it.
 
-## Sensor assembly
-
-**NOTE:** Soldering is required for the CubeCell board.
+<h2 name="sensor">Dorothy Sensor</h2>
 
 Dorothy is designed around the [Cylindrical Battery Holder](https://www.thingiverse.com/thing:6080710) project, allowing
 easy swapping of cells. Alternatively, the whole battery can be quickly swapped in the field.
+
+## The Dorothy Protocol
+
+Dorothy
 
 ## Usage
 
