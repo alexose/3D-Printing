@@ -30,7 +30,7 @@ use <threads.scad>
 // Parts
 render_outer_shell = 1;
 render_brain = 1;
-brain_type = "distance";  // distance, temperature_humidity, or soil_moisture
+brain_type = "temperature_humidity";  // distance, temperature_humidity, or soil_moisture
 
 
 // Adjustable dimensions
@@ -51,12 +51,12 @@ seal_height = 6;
 board_width = 28;
 board_depth = 5;
 thread_offset = 1.2;
+sled_offset = 10;
 
 // Note that while the board_height is 64mm, it goes through the 6mm "seal" and sticks about 3mm 
 // into the battery pack.  So the total height of the brain ends up being 55mm.
 board_height = 64;
     
-
 // Height of inner "brain" compartment.  This needs to be a standard height so that shells are all
 // compatible with one another.  
 brain_height = 55; 
@@ -121,7 +121,7 @@ module brain_distance() {
         }
     }
     
-    translate([10, 0]) sled_mount(sw, sh);
+    translate([sled_offset, 0]) sled_mount(sw, sh);
     
     module oval_cutout(){
         hull() translate([0, 0, -3.5]) standoffs(2, 2, 10, sensor_height-3);
@@ -137,7 +137,7 @@ module brain_distance() {
         translate([-hole_distance/2, 0, 0]) cylinder(h*2, hole_radius*f, hole_radius*f);
     }
     
-    translate([-60, 0, board_depth/2]) rotate([90, 180, 0]) sled(board_height - seal_height + 1);    
+    translate([-45, 0, board_depth/2]) rotate([90, 180, 0]) sled(board_height - seal_height + 1);    
 }
 module brain_temperature_humidity() {
     // Temperature and humidity module.  This is based on the ubiquitous DHT22, which costs about $1.60.
@@ -163,15 +163,16 @@ module brain_temperature_humidity() {
                 seal();
                 translate([0, 0, h - (sd / 2) ]) {
                     translate([0, 0, 1]) {
-                        cube([sw, sh, 3], center=true);
+                        cube([sw, sh, 4.3], center=true);
                     }
                 }
-                translate([4, 0]) cube([20, 16, 20], center=true); 
+                translate([6, 0]) cube([20.3, 15.8, 20], center=true); 
             }
         }
     }
     
-    sled_mount(sw, sh);
+    translate([sled_offset, 0]) sled_mount(sw, sh);
+    translate([-45, 0, board_depth/2]) rotate([90, 180, 0]) sled(board_height - seal_height + 1);
 }
 
 module brain_soil_moisture() {
@@ -215,7 +216,7 @@ module brain_soil_moisture() {
         seal();
         offset = 6; // Gives a little extra breathing room for CubeCell
         voffset = 1.39; // Fudged this... room for improvement here
-        translate([0, offset, bh/2 - voffset]) scale(1.0) sled();
+        translate([0, offset, bh/2 - voffset]) sled();
     }
 }
 
@@ -250,14 +251,17 @@ module sled(bh=board_height) {
             translate([-bw/2, 0,  -bh/2 + wd/2]) roundedcube([wd, bd, ww], radius=radius, true);
             
             // Standoffs for CubeCell
-            translate([0, 0, 3]) rotate([90, 0, 0]) standoffs(2, 10, cx, cy);
+            // translate([0, 0, 3]) rotate([90, 0, 0]) standoffs(2, 10, cx, cy);
+            
+            // Clips for CubeCell
+            translate([0, -4, 3]) rotate([90, 0, 0]) clips(cx - 7, cy);
         }
                     
         // Slice 2mm off bottom of roundedcube so that everything lines up nicely
         translate([0, 0, -bh+2]) cube([bw + wd * 2, bd, bh], true);
         
         // Mounting holes for CubeCell
-        translate([0, 0, 3]) rotate([90, 0, 0]) standoffs(1, 10, cx, cy);
+        // translate([0, 0, 3]) rotate([90, 0, 0]) standoffs(1, 10, cx, cy);
     }
 }
 
@@ -290,6 +294,24 @@ module outer_shell(){
     }
 }
 
+module clips(height, width) {
+    x = height / 2;
+    y = width / 2;
+    
+    union() { 
+        translate([x, y]) clip();
+        translate([x, -y]) rotate([0, 0, 180])  clip();
+        translate([-x, y]) clip();
+        translate([-x, -y]) rotate([0, 0, 180])  clip();
+    }
+}
+
+module clip() {
+    translate([-2, 0]) rotate([90, 0, 90]) linear_extrude(4) polygon([[2,9],[1,10],[-2,9],[-2,8],[-1,8],[0,7],[-1,6],[-1,-2],[1,-2]]);
+
+
+
+}
 
 module standoffs(r, depth, height, width) {
     $fn = 20;
