@@ -1,5 +1,5 @@
-width = 168;
-height = 74;
+width = 162;
+height = 73;
 depth = 76;
 thickness = 1.6;
 roundness = 5;
@@ -9,11 +9,11 @@ lid_depth = depth * 0.3;
 
 battery_pack_radius = 25;
 battery_pack_height = 75; 
-space_between_batteries = 30;
+space_between_batteries = 50;
 
 board_standoff_distance_x = 45;
 board_standoff_distance_y = 66;
-board_standoff_height = 60;
+board_standoff_height = 50;
 
 button_hole_radius = 8.4;
 window_radius = 3.5;
@@ -34,7 +34,7 @@ module lid() {
     h2 = h1 - t*2;
     d2 = d1 - t*2;
     r = roundness;
-    s = space_between_batteries + battery_pack_radius;
+    s = space_between_batteries/2 + battery_pack_radius + t*2;
     
     r2 = button_hole_radius;
     o = distance_between_button_and_window / 2;
@@ -84,22 +84,27 @@ module shell() {
     y = board_standoff_distance_y;
     z = board_standoff_height;
 
-    s = space_between_batteries + battery_pack_radius;
+    s = space_between_batteries/2 + battery_pack_radius + t*2;
     
     difference() {
         union() {
             translate([0, 0, d1/2]) difference() { 
-                roundedcube([w1, h1, d1], center=true, radius=r);
-                roundedcube([w2, h2, d2], center=true, radius=r);
+                main_shape();
                 translate([0, 0, d1/2]) cube([w1,h1,r*2], center=true);
                 translate([0, 0, -d1/2]) solenoid_hole();
             }
             
-            translate([-s, 0, t]) battery_holder();
-            translate([s, 0, t]) battery_holder();
+             intersection() {
+                translate([0, 0, d1/2]) roundedcube([w1, h1, d1], center=true, radius=r);
+                union() {
+                    translate([-s, 0, t]) battery_holder();
+                    translate([s, 0, t]) battery_holder();
+                }
+             }
             solenoid_standoffs(1, t - .8);
          }
          solenoid_standoffs(-1, t);
+
     }
     
     translate([0, 0, t]) {
@@ -111,7 +116,35 @@ module shell() {
             }
         }
     }
+    
+    module main_shape() {
+        th = height;
+        tw = 20;
+        tl = 18;
+        $fn = 80;
+        difference() {
+            roundedcube([w1, h1, d1], center=true, radius=r);
+            roundedcube([w2, h2, d2], center=true, radius=r);
+            translate([0, th/2, -th/2 - tw/2 - 4]) rotate([90, 0]) cylinder(tl, r=tw-t/2);
+            translate([0, -th/2 + tl, -th/2 - tw/2 - 4]) rotate([90, 0]) cylinder(tl, r=tw-t/2);
+        }  
+        
+        intersection() {
+            difference() {
+                union() {
+                    translate([0, th/2, -th/2 - tw/2 - 4]) rotate([90, 0]) cylinder(tl, r=tw);
+                    translate([0, -th/2 + tl, -th/2 - tw/2 - 4]) rotate([90, 0]) cylinder(tl, r=tw);
+                }
+                translate([0, th/2 + t, -th/2 - tw/2 - 4]) rotate([90, 0]) cylinder(tl, r=tw-t/2);
+                translate([0, -th/2 + tl - t, -th/2 - tw/2 - 4]) rotate([90, 0]) cylinder(tl, r=tw-t/2);
+            }
+            roundedcube([w1, h1, d1], center=true, radius=r);
+        }
+
+    }
 }
+
+
 
 module slice() {
     // Something about the roundedcube math is off, requires us to cut off the bottom
@@ -135,7 +168,7 @@ module battery_holder(h=battery_pack_height, r=battery_pack_radius + fit_toleran
     difference() {
         cylinder(h, r=r+t+f);
         cylinder(h+t, r=r+f);
-        if (cutout) cube([r*3, w+t, h*2+t], center=true);
+        if (cutout) cube([r*3, 45, h*2+t], center=true);
     }
 }
 

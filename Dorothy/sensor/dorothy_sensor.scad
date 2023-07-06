@@ -30,7 +30,8 @@ use <threads.scad>
 // Parts
 render_outer_shell = 1;
 render_brain = 1;
-brain_type = "temperature_humidity";  // distance, temperature_humidity, or soil_moisture
+render_standoffs = 1;
+brain_type = "soil_moisture";  // distance, temperature_humidity, or soil_moisture
 
 
 // Adjustable dimensions
@@ -71,6 +72,7 @@ height = battery_pack_height
 offset = width * 2.25;
 if (render_brain) translate([0, 0, 0]) brain();
 if (render_outer_shell) translate([offset, 0, 0]) outer_shell();
+if (render_standoffs) translate([20, 0, 0]) cubecell_standoffs();
 
 module brain() {
     if (brain_type == "distance") brain_distance();
@@ -197,7 +199,7 @@ module brain_soil_moisture() {
     wd = 6;
     f = fit_tolerance;
     
-    rotate([90, 0]) translate([0, bd/2, 0]) difference() {
+    rotate([90, 0]) translate([-10, bd/2]) difference() {
         sled();
         union() {
         
@@ -215,11 +217,10 @@ module brain_soil_moisture() {
     translate([-w*2, 0]) difference() {
         seal();
         offset = 6; // Gives a little extra breathing room for CubeCell
-        voffset = 1.39; // Fudged this... room for improvement here
+        voffset = 2; // Fudged this... room for improvement here
         translate([0, offset, bh/2 - voffset]) sled();
     }
 }
-
 
 module seal(){
     t = thickness;
@@ -250,18 +251,23 @@ module sled(bh=board_height) {
             translate([bw/2, 0, -bh/2 + wd/2]) roundedcube([wd, bd, ww], radius=radius, true);
             translate([-bw/2, 0,  -bh/2 + wd/2]) roundedcube([wd, bd, ww], radius=radius, true);
             
-            // Standoffs for CubeCell
-            // translate([0, 0, 3]) rotate([90, 0, 0]) standoffs(2, 10, cx, cy);
             
             // Clips for CubeCell
-            translate([0, -4, 3]) rotate([90, 0, 0]) clips(cx - 7, cy);
+            // translate([0, -4, 3]) rotate([90, 0, 0]) clips(cx - 7, cy);
         }
                     
         // Slice 2mm off bottom of roundedcube so that everything lines up nicely
         translate([0, 0, -bh+2]) cube([bw + wd * 2, bd, bh], true);
         
         // Mounting holes for CubeCell
-        // translate([0, 0, 3]) rotate([90, 0, 0]) standoffs(1, 10, cx, cy);
+        translate([0, 0, 3]) rotate([90, 0, 0]) standoffs(1, 10, cx, cy);
+    }
+}
+
+module cubecell_standoffs() {
+    difference() {
+        standoffs(1.2+thickness, 10, 5, 5);
+        standoffs(1.2, 10, 5, 5);
     }
 }
 
