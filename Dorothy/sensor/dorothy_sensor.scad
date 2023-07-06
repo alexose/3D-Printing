@@ -34,8 +34,8 @@ brain_type = "distance";  // distance, temperature_humidity, or soil_moisture
 
 
 // Adjustable dimensions
-thickness = 2;       // Thickness of wall.  Recommend 2mm to make room for threads
-width = 27;          // Outer radius.  With 2mm thick walls, the inside radius becomes 25mm
+thickness = 1;       // Thickness of wall.  Recommend 1mm to make room for threads
+width = 27;          // Outer radius.  With 1mm thick walls, the inside radius becomes 25mm
 dome_height = 8;     // Controls "Roundness" of shell
 overhang = 4;        // Extra shell height to allow for a bit of overhang
 tolerance = 0.3;     // Can be adjusted if threads don't fit together
@@ -109,7 +109,6 @@ module brain_distance() {
                     }
                 }
                 sensor_holes(h);
-                translate([0, 14, bh-1]) scale([1.02, 1.02, 2]) sled();
             }
         }
         
@@ -120,6 +119,8 @@ module brain_distance() {
             translate([0, 0, h - d]) standoffs(r, d, sw - o, sh - o);              
         }
     }
+    
+    translate([10, 0]) sled_mount(sw, sh);
     
     module oval_cutout(){
         hull() translate([0, 0, -3.5]) standoffs(2, 2, 10, sensor_height-3);
@@ -213,7 +214,7 @@ module brain_soil_moisture() {
         seal();
         offset = 6; // Gives a little extra breathing room for CubeCell
         voffset = 1.39; // Fudged this... room for improvement here
-        translate([0, offset, bh/2 - voffset]) scale(1.02) sled();
+        translate([0, offset, bh/2 - voffset]) scale(1.0) sled();
     }
 }
 
@@ -234,6 +235,9 @@ module sled(bh=board_height) {
     wd = 6;
     f = fit_tolerance;
     
+    cx = 18.92;
+    cy = 36.71;
+    
     difference() {
         union() {
             roundedcube([bw, bd, bh], radius=radius, true);
@@ -241,21 +245,24 @@ module sled(bh=board_height) {
             // Add "dogbones" which help lock the sled in place
             translate([bw/2, 0, -bh/2 + wd/2]) roundedcube([wd, bd, ww], radius=radius, true);
             translate([-bw/2, 0,  -bh/2 + wd/2]) roundedcube([wd, bd, ww], radius=radius, true);
+            
+            // Standoffs for CubeCell
+            translate([0, 0, 3]) rotate([90, 0, 0]) standoffs(2, 10, cx, cy);
         }
                     
         // Slice 2mm off bottom of roundedcube so that everything lines up nicely
         translate([0, 0, -bh+2]) cube([bw + wd * 2, bd, bh], true);
         
         // Mounting holes for CubeCell
-        translate([0, 0, 3]) rotate([90, 0, 0]) standoffs(1, 3, 18.92, 36.71);
+        translate([0, 0, 3]) rotate([90, 0, 0]) standoffs(1, 10, cx, cy);
     }
 }
 
 module sled_mount(sw, sh) {
-    mh = 5;
+    mh = 6;
     h = seal_height;
     translate([0, 0, h + mh/2 - 1]) difference() {
-        rotate([0, 0, 90]) roundedcube([45, 13, mh], center=true);
+        rotate([0, 0, 90]) roundedcube([40, 8, mh], radius=1.4, center=true);
         translate([0, 0, 29.5]) rotate([0, 0, 90]) sled();
         cube([sw, sh, 100], center=true);
     }
@@ -263,18 +270,20 @@ module sled_mount(sw, sh) {
  
 module outer_shell(){
     h = height;
-    w = width;
-    t = thickness/2;
+    t = thickness;
+    w = width - t*2;
     
-    $fn=150;
+    
+    $fn=30;
 
     total_height = height + dome_height;
     threaded_section_height = seal_height + overhang;
     
-    translate([0, 0, total_height]) rotate([0, 180]) ScrewHole(w*2, threaded_section_height, pitch=pitch, tooth_angle=tooth_angle, tolerance=1) { 
+    translate([0, 0, total_height]) rotate([0, 180]) ScrewHole(w*2, threaded_section_height, pitch=pitch, tooth_angle=tooth_angle) { 
         difference(){
             domed_cylinder(h,w + t*2);
             domed_cylinder(h-t,w);
+            echo(w - t*2);
         }
     }
 }

@@ -17,13 +17,13 @@ cell_radius = 18 / 2 + tolerance;
 hole_radius = 2.2;
 
 render_plate = 1;
-render_cap_with_ring_cutout = 0;
+render_cap_with_sled_cutout = 0;
 render_cap_with_hole = 0;
 render_cap = 1;
 render_tube = 1;
 
 if (render_plate) plate();
-if (render_cap_with_ring_cutout) translate([-plate_radius*2 - 3, 0]) cap_with_ring_cutout();
+if (render_cap_with_sled_cutout) translate([-plate_radius*2 - 3, 0]) cap_with_sled_cutout();
 if (render_cap_with_hole) translate([-plate_radius*2 - 3, 0]) cap_with_hole();
 if (render_cap) translate([-plate_radius*2 - 3, 0]) cap();
 if (render_tube) translate([plate_radius*2 + 3, 0]) tube();
@@ -127,12 +127,12 @@ module cap(bottom_padding = 0) {
     }
 }
 
-module cap_with_ring_cutout() {
+module cap_with_sled_cutout() {
     bw = 28;
     bd = 5;
     bh = 65;
     radius = 1;
-    offset = 5; // Gives a little extra room for cubecell
+    offset = 10; // Gives a extra room for cubecell
     
     difference() {
         cap(3);
