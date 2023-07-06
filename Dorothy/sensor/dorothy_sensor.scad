@@ -50,6 +50,7 @@ tooth_angle = 50;
 seal_height = 6;
 board_width = 28;
 board_depth = 5;
+thread_offset = 1.2;
 
 // Note that while the board_height is 64mm, it goes through the 6mm "seal" and sticks about 3mm 
 // into the battery pack.  So the total height of the brain ends up being 55mm.
@@ -220,7 +221,9 @@ module brain_soil_moisture() {
 
 
 module seal(){
-    ScrewThread(width*2 - thickness, seal_height, pitch=pitch, tooth_angle=tooth_angle, tolerance=tolerance);
+    t = thickness;
+    w = width - t*2;
+    ScrewThread(w*2 + thread_offset, seal_height, pitch=pitch, tooth_angle=tooth_angle, tolerance=tolerance);
 }
 
 module sled(bh=board_height) {
@@ -259,11 +262,14 @@ module sled(bh=board_height) {
 }
 
 module sled_mount(sw, sh) {
-    mh = 6;
+    mh = 6.5;
     h = seal_height;
-    translate([0, 0, h + mh/2 - 1]) difference() {
-        rotate([0, 0, 90]) roundedcube([40, 8, mh], radius=1.4, center=true);
-        translate([0, 0, 29.5]) rotate([0, 0, 90]) sled();
+    bh = board_height;
+    ho = h + mh/2 - 1;
+    
+    translate([0, 0, ho]) difference() {
+        rotate([0, 0, 90]) roundedcube([41, 9, mh], radius=1.4, center=true);
+        translate([0, 0, bh + 1 - ho]) rotate([0, 0, 90]) scale([1,1,2]) sled();
         cube([sw, sh, 100], center=true);
     }
 }
@@ -273,17 +279,13 @@ module outer_shell(){
     t = thickness;
     w = width - t*2;
     
-    
-    $fn=30;
-
     total_height = height + dome_height;
     threaded_section_height = seal_height + overhang;
     
-    translate([0, 0, total_height]) rotate([0, 180]) ScrewHole(w*2, threaded_section_height, pitch=pitch, tooth_angle=tooth_angle) { 
+    translate([0, 0, total_height]) rotate([0, 180]) ScrewHole(w*2 + thread_offset, threaded_section_height, pitch=pitch, tooth_angle=tooth_angle, tolerance=tolerance) { 
         difference(){
             domed_cylinder(h,w + t*2);
             domed_cylinder(h-t,w);
-            echo(w - t*2);
         }
     }
 }
