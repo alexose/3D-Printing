@@ -251,7 +251,6 @@ module sled(bh=board_height) {
             translate([bw/2, 0, -bh/2 + wd/2]) roundedcube([wd, bd, ww], radius=radius, true);
             translate([-bw/2, 0,  -bh/2 + wd/2]) roundedcube([wd, bd, ww], radius=radius, true);
             
-            
             // Clips for CubeCell
             // translate([0, -4, 3]) rotate([90, 0, 0]) clips(cx - 7, cy);
         }
@@ -265,9 +264,10 @@ module sled(bh=board_height) {
 }
 
 module cubecell_standoffs() {
+    h = 6;
     difference() {
-        standoffs(1.2+thickness, 10, 5, 5);
-        standoffs(1.2, 10, 5, 5);
+        standoffs(1.2+thickness, h, 5, 5);
+        standoffs(1.2, h, 5, 5);
     }
 }
 

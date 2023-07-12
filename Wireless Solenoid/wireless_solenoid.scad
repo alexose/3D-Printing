@@ -19,8 +19,27 @@ button_hole_radius = 8.4;
 window_radius = 3.5;
 distance_between_button_and_window = 27;
 
-translate([0, height/2 + thickness]) slice() shell();
-translate([0, - height/2 - thickness]) slice() lid();
+//translate([0, height/2 + thickness]) slice() shell();
+//translate([0, - height/2 - thickness]) slice() lid();
+window();
+
+
+module window() {
+    f = 0.1;
+    $fn = 50;
+    t = thickness;
+    r = window_radius;
+    difference(){ 
+        union() {
+            cylinder(t, r=r + f);
+            translate([0, 0, t]) cylinder(t+f, r=r - f*4);
+            translate([0, 0, t*2+f]) cylinder(t, r=r);
+        }
+        translate([0, 0, t*2+f]) cube([t, 10, t*2 + f*2], center=true);
+    }
+    
+
+}
 
 module lid() {
     f = fit_tolerance;
@@ -119,24 +138,25 @@ module shell() {
     
     module main_shape() {
         th = height;
-        tw = 20;
+        tw = 19;
         tl = 18;
+        to = 7;
         $fn = 80;
         difference() {
             roundedcube([w1, h1, d1], center=true, radius=r);
             roundedcube([w2, h2, d2], center=true, radius=r);
-            translate([0, th/2, -th/2 - tw/2 - 4]) rotate([90, 0]) cylinder(tl, r=tw-t/2);
-            translate([0, -th/2 + tl, -th/2 - tw/2 - 4]) rotate([90, 0]) cylinder(tl, r=tw-t/2);
+            translate([0, th/2, -th/2 - tw/2 - to]) rotate([90, 0]) cylinder(tl, r=tw-t/2);
+            translate([0, -th/2 + tl, -th/2 - tw/2 - to]) rotate([90, 0]) cylinder(tl, r=tw-t/2);
         }  
         
         intersection() {
             difference() {
                 union() {
-                    translate([0, th/2, -th/2 - tw/2 - 4]) rotate([90, 0]) cylinder(tl, r=tw);
-                    translate([0, -th/2 + tl, -th/2 - tw/2 - 4]) rotate([90, 0]) cylinder(tl, r=tw);
+                    translate([0, th/2, -th/2 - tw/2 - to]) rotate([90, 0]) cylinder(tl, r=tw);
+                    translate([0, -th/2 + tl, -th/2 - tw/2 - to]) rotate([90, 0]) cylinder(tl, r=tw);
                 }
-                translate([0, th/2 + t, -th/2 - tw/2 - 4]) rotate([90, 0]) cylinder(tl, r=tw-t/2);
-                translate([0, -th/2 + tl - t, -th/2 - tw/2 - 4]) rotate([90, 0]) cylinder(tl, r=tw-t/2);
+                translate([0, th/2 + t, -th/2 - tw/2 - to]) rotate([90, 0]) cylinder(tl, r=tw-t/2);
+                translate([0, -th/2 + tl - t, -th/2 - tw/2 - to]) rotate([90, 0]) cylinder(tl, r=tw-t/2);
             }
             roundedcube([w1, h1, d1], center=true, radius=r);
         }
