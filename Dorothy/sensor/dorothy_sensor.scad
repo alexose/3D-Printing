@@ -264,7 +264,7 @@ module sled(bh=board_height) {
 }
 
 module cubecell_standoffs() {
-    h = 6;
+    h = 8;
     difference() {
         standoffs(1.2+thickness, h, 5, 5);
         standoffs(1.2, h, 5, 5);
@@ -314,9 +314,6 @@ module clips(height, width) {
 
 module clip() {
     translate([-2, 0]) rotate([90, 0, 90]) linear_extrude(4) polygon([[2,9],[1,10],[-2,9],[-2,8],[-1,8],[0,7],[-1,6],[-1,-2],[1,-2]]);
-
-
-
 }
 
 module standoffs(r, depth, height, width) {
