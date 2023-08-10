@@ -21,9 +21,9 @@ difference() {
 }
 */
 
-//cap();
-translate([0, 27]) potentiometer_stalk();
-
+// cap();
+// translate([0, 27]) potentiometer_stalk();
+extendo();
 
 module base() {
     
@@ -69,6 +69,8 @@ module base() {
         translate([0, 0, -thruster_radius - 1]) indentation();
     }
 }
+
+
 
 // TODO: make this nicer
 module indentation() {
@@ -116,6 +118,35 @@ module top() {
     }
 }
 
+module extendo() {
+    h = 20;
+    r = top_radius;
+    t = wall_thickness / 2;
+    battery_pack_height = 73;
+    battery_pack_radius = 25 + 0.6;
+    bh = battery_pack_height;
+    br = battery_pack_radius;
+    
+    
+    h2 = 10; // screw thread height
+    h3 = 12; // middle height
+    // Main compartment
+    translate([0, 0, h2 + h3]) ScrewHole(r*2+t*2, h2, pitch=2.8, tooth_angle=45) union() {
+        cylinder(h2, r=r+t*2);
+    }
+    
+    translate([0, 0, h2]) difference() {
+        cylinder(h3, r=r+t*2);
+        cylinder(h3, r=r-t); 
+        
+    }
+    
+    difference() {
+        ScrewThread(r*2+t*2, h2, pitch=2.8, tooth_angle=45);
+        cylinder(h2, r=r-t); 
+    }
+}
+
 module cap() {
 
     h = top_length;
@@ -123,7 +154,7 @@ module cap() {
     t = wall_thickness / 2;
     h2 = 7; // screw thread height
     o = 27; // camfer size
-    e = 30; // extra space
+    e = 50; // extra space
     
     p = 3 + wall_thickness/2 + 0.3;
 
@@ -137,35 +168,38 @@ module cap() {
             translate([0, 0, e-t]) camfered_cylinder(h2+t,r, o);
             
             // Hole for potentiometer stalk
-            translate([0, -20, 10]) rotate([90, 0]) cylinder(r, r=p);
+            translate([0, -20, 50]) rotate([90, 0]) cylinder(r, r=p);
         }
     }
 }
 
 module potentiometer_stalk() {
     fit_tolerance = 0.3;
-    h = 30;
-    ih = 10; // inner height
-    ir = 3 + fit_tolerance; //inner radius
+    h = 12;
+    ih = 6; // inner height
+    ir = 5.95 / 2;
     or = 3 + wall_thickness/2;
     
     difference() {
-        cylinder(h, or, or);
+        union () {
+            cylinder(h, or, or);
+            cylinder(10, r=or*2);
+        }
         translate([0, 0, h-ih]) {
             difference() {
                 cylinder(ih, r=ir);
-                translate([-10, 1.5 + fit_tolerance]) cube(100);
+                // translate([-10, 1.5 + fit_tolerance]) cube(100);
             }
         }
     }
-    cylinder(10, r=or*2);
     
+    /*
     translate([20, 0]) difference() {
         cylinder(5, r=or*2);
         cylinder(ih, r=ir+fit_tolerance);
     }
+    */
 }
-
 
 module camfered_cylinder(h,r,o) {
     union(){
