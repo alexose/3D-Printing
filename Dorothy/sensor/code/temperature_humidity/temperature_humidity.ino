@@ -7,7 +7,7 @@
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
 
-#define timetosleep 1000
+#define timetosleep 300
 #define timetowake 60 * 1000 * 10 // Every 10 minutes
 
 static TimerEvent_t sleep;

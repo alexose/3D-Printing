@@ -17,32 +17,10 @@ distance_between_containers = 24;
 
 $fn = 50;
 
-//base();
+// base();
 // electrode_holder();
 
-
-module lid() {
-    br = base_radius; 
-    h = 3;
-    r = 8;
-    t = 1.6;
-    
-    cylinder(h, r=br);
-    
-    scale([1, 1, 0.75]) difference() {
-        rotate_extrude() {
-            translate([br + 5, 0]) lid_cutout_shape();
-        }
-        rotate_extrude() {
-            translate([br + 5, 0]) scale(0.8) lid_cutout_shape();
-        }
-    }
-}
-
-module lid_cutout_shape() {
-polygon([[-8,0/*1:0,0,0,0*/] ,[-7.87,1.02] ,[-7.73,2.12] ,[-7.61,3.12] ,[-7.48,4.19] ,[-7.34,5.26] ,[-7.19,6.48] ,[-7.05,7.59] ,[-6.9,8.82] ,[-6.77,9.83] ,[-6.64,10.9] ,[-6.49,12.06] ,[-6.34,13.29] ,[-6.17,14.6],[-6,16/*1:-2,-16,6,8*/] ,[-5.28,16.88] ,[-4.56,17.63] ,[-3.67,18.36] ,[-2.79,18.9] ,[-1.76,19.33] ,[-0.76,19.53] ,[0.36,19.52] ,[1.41,19.31] ,[2.38,18.94] ,[3.27,18.46] ,[4.16,17.83] ,[4.97,17.13] ,[5.66,16.4],[6,16],[8,0]]);
-
-}
+breadboard_cover();
 
 module base() {
     border_width = 10;
@@ -88,21 +66,24 @@ module base() {
         r = 1.5;
         w2 = 110;
         h2 = 60;
-   
-        hull() standoffs(h, w, o, r);
         
         difference() {
-            translate([0, 0, h-50]) {
-                hull() {
-                    translate([0, 0, h2+30]) standoffs(0.1, w2, o, r);
-                    translate([0, 0, h2]) standoffs(0.1, w2, o, r);
-                }
-                hull() {
-                    translate([0, 0, h2]) standoffs(0.1, w2, o, r);
-                    standoffs(0.1, w, o, r);
+            union() {
+                hull() standoffs(h, w, o, r);
+                translate([0, 0, h-50]) {
+                    hull() {
+                        translate([0, 0, h2+30]) standoffs(0.1, w2, o, r);
+                        translate([0, 0, h2]) standoffs(0.1, w2, o, r);
+                    }
+                    hull() {
+                        translate([0, 0, h2]) standoffs(0.1, w2, o, r);
+                        standoffs(0.1, w, o, r);
+                    }
                 }
             }
             
+            
+            translate([0, -1, 120]) rotate([-90, 0]) breadboard_cover_screw_holes();
             // These holes should be exactly 25mm above the shelf
             // translate([-84, 1, 190 + 25]) solenoid_screw_holes();
             // translate([84, 1, 190 + 25]) solenoid_screw_holes();
@@ -116,10 +97,30 @@ module base() {
         
         // Upper shelf
         translate([0, 0, 185]) shelf_brackets();
-        
-            
-        
     }
+}
+
+module lid() {
+    br = base_radius; 
+    h = 3;
+    r = 8;
+    t = 1.6;
+    
+    cylinder(h, r=br);
+    
+    scale([1, 1, 0.75]) difference() {
+        rotate_extrude() {
+            translate([br + 5, 0]) lid_cutout_shape();
+        }
+        rotate_extrude() {
+            translate([br + 5, 0]) scale(0.8) lid_cutout_shape();
+        }
+    }
+}
+
+module lid_cutout_shape() {
+polygon([[-8,0/*1:0,0,0,0*/] ,[-7.87,1.02] ,[-7.73,2.12] ,[-7.61,3.12] ,[-7.48,4.19] ,[-7.34,5.26] ,[-7.19,6.48] ,[-7.05,7.59] ,[-6.9,8.82] ,[-6.77,9.83] ,[-6.64,10.9] ,[-6.49,12.06] ,[-6.34,13.29] ,[-6.17,14.6],[-6,16/*1:-2,-16,6,8*/] ,[-5.28,16.88] ,[-4.56,17.63] ,[-3.67,18.36] ,[-2.79,18.9] ,[-1.76,19.33] ,[-0.76,19.53] ,[0.36,19.52] ,[1.41,19.31] ,[2.38,18.94] ,[3.27,18.46] ,[4.16,17.83] ,[4.97,17.13] ,[5.66,16.4],[6,16],[8,0]]);
+
 }
 
 module solenoid_screw_holes () {
@@ -286,16 +287,13 @@ module standoffs(h, w, d, r) {
     translate([-w+r, -d+r]) cylinder(h, r, r);
 }
 
-module screw_brackets(h, w, d, r) {
-    translate([w-r, d-r]) rotate([180, 180]) screw_bracket();
-    translate([w-r, -d+r]) screw_bracket();
-    translate([-w+r, d-r]) rotate([180, 180]) screw_bracket();
-    translate([-w+r, -d+r]) screw_bracket();
+module screw_brackets(h, w, d) {
+    translate([w, d]) rotate([180, 180]) screw_bracket();
+    translate([w, -d]) screw_bracket();
+    translate([-w, d]) rotate([180, 180]) screw_bracket();
+    translate([-w, -d]) screw_bracket();
 }
 
-breadboard_cover();
-
- 
 module breadboard_cover() {
     f = 3; // fit tolerance
     t = 1.6; // wall thickness
@@ -308,31 +306,27 @@ module breadboard_cover() {
     difference() {
         union() {
             hull() standoffs(h, x+t/2, y+t/2, r);
-            translate([0, 0, h]) mirror([0,0,1]) screw_brackets(h, x/2, y+t/2, r);
+            translate([0, 0, h]) mirror([0,0,1]) screw_brackets(h, x/2, y+t/2);
         }
         translate([0, 0, t]) hull() standoffs(h, x, y, r);
         translate([-y, x, h]) rotate([0, 90]) cylinder(y*2, r=3.5);
         translate([-y, -x, h]) rotate([0, 90]) cylinder(y*2, r=3.5);
+        translate([0, 0, -t]) breadboard_cover_screw_holes(5);
         breadboard_cover_screw_holes();
     }
 }
 
 module screw_bracket() {
     w = 1;
-    scale(15) difference() {
-        translate([w/2, 0, w]) rotate([0, 90, 180]) linear_extrude(w) polygon([[0,0],[1,0],[1,1]]);
-        scale(0.8) translate([w/2, -0.2, w+0.2]) rotate([0, 90, 180]) linear_extrude(w) polygon([[0,0],[1,0],[1,1]]);
-    }
+    scale(15) translate([w/2, 0, w]) rotate([0, 90, 180]) linear_extrude(w) polygon([[0,0],[1,0],[1,1]]);
 }
 
-module breadboard_cover_screw_holes() {
+module breadboard_cover_screw_holes(r=1) {
     f = 3; // fit tolerance
     t = 1.6; // wall thickness
-    h = 40;
-    r = 2;
-    
+    h = 20;
     x = 55 + f;
-    y = (165 + f) / 2 + 8;
+    y = (165 + f) / 2;
     
-    standoffs(h, x/2, y+t/2, r);
+    standoffs(h, x/2 + r, y + 8 + r, r);
 }

@@ -5,14 +5,14 @@
 #include "heltec.h"
 #include <Wire.h>
 
-#define BAND    868E6  //you can set band here directly,e.g. 868E6,915E6
+#define BAND 868E6
 
 String rssi = "RSSI --";
 String packSize = "--";
 String packet ;
 
-char ssid[] = "";     //  your network SSID (name) 
-char pass[] = "";    // your network password
+char ssid[] = "Thompson Creek Yacht Club";     //  your network SSID (name) 
+char pass[] = "winecountry";    // your network password
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
 // the IP address of your InfluxDB host
@@ -27,12 +27,14 @@ void setup() {
 
   Heltec.begin(true /*DisplayEnable Enable*/, true /*Heltec.Heltec.Heltec.LoRa Disable*/, true /*Serial Enable*/, true /*PABOOST Enable*/, BAND /*long BAND*/);
   Heltec.display->init();
-  Heltec.display->flipScreenVertically();  
   Heltec.display->setFont(ArialMT_Plain_10);
 
-  LoRa.setSpreadingFactor(11);
-  // put in standby mode
-  // LoRa.setSignalBandwidth(125E3);
+  LoRa.setSpreadingFactor(8);
+    // put in standby mode
+  LoRa.setSignalBandwidth(125E3);
+  LoRa.setCodingRate4(4);
+  LoRa.setSyncWord(0x12);   //0x34
+  LoRa.setPreambleLength(8);
 
   delay(2000);
 
@@ -42,11 +44,9 @@ void setup() {
   Heltec.display->drawString(0, 0, "Connecting to ");
   Heltec.display->drawString(0, 10, ssid);
   Heltec.display->display();
-
-  LoRa.dumpRegisters(Serial);
   
   // initialize serial port
-  Serial.begin(9600);
+  Serial.begin(115200);
 
   // attempt to connect using WPA2 encryption
   Serial.println("Attempting to connect to WPA network...");
@@ -76,7 +76,7 @@ void setup() {
   
   // print the received signal strength:
   long rssi = WiFi.RSSI();
-  Serial.print("signal strength (RSSI):");
+  Serial.print("WiFi signal strength (RSSI):");
   Serial.print(rssi);
   Serial.println(" dBm");
   digitalWrite(21,LOW);
@@ -93,8 +93,7 @@ void LoRaData(){
   Heltec.display->clear();
   Heltec.display->setTextAlignment(TEXT_ALIGN_LEFT);
   Heltec.display->setFont(ArialMT_Plain_10);
-  Heltec.display->drawStringMaxWidth(0 , 26 , 128, packet);
-  Heltec.display->drawString(0, 0, rssi);  
+  Heltec.display->drawStringMaxWidth(0 , 0 , 128, packet);
   Heltec.display->display();
 
   // send the packet
