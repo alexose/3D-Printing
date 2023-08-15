@@ -5,13 +5,13 @@
 #include <I2CSoilMoistureSensor.h>
 #include <Wire.h>
 
+String host_id = "soil_moisture_1"; // Change this to whatever you want!
+String voltage = "0";
+
 I2CSoilMoistureSensor sensor;
 
 #define timetosleep 300 // 300 milliseconds
 #define timetowake 1000 * 60 * 5 // five minutes
-
-String host_id = "soil_moisture_2";
-String voltage = "0";
 
 static TimerEvent_t sleep;
 static TimerEvent_t wakeup;
@@ -23,8 +23,8 @@ bool done = false;
 #define LORA_BANDWIDTH                              0
 #define LORA_SPREADING_FACTOR                       8
 #define LORA_CODINGRATE                             4
-#define LORA_PREAMBLE_LENGTH                        8         // Same for Tx and Rx
-#define LORA_SYMBOL_TIMEOUT                         0         // Symbols
+#define LORA_PREAMBLE_LENGTH                        8
+#define LORA_SYMBOL_TIMEOUT                         0
 #define LORA_FIX_LENGTH_PAYLOAD_ON                  false
 #define LORA_IQ_INVERSION_ON                        false
 #define RX_TIMEOUT_VALUE                            1000
@@ -76,7 +76,6 @@ void setup() {
   OnSleep();
 }
 
-
 uint32_t out_flag_1 = 0;
 uint32_t out_flag_2 = 0;
 uint32_t t1;
@@ -98,7 +97,6 @@ void loop()
 {
   if (lowpower)
   {
-    //note that LowPower_Handler() run six times the mcu into lowpower mode;
     lowPowerHandler();
   } else if (!done) {
 
@@ -112,20 +110,16 @@ void loop()
     Wire.begin();
     Wire.setClock(50000);
     
-    // Wire.setClockStretchLimit(2500);  
-    
     sensor.begin(); // reset sensor
     delay(1000);
-    // while (sensor.isBusy()) delay(50);
     
     // clear buffer with fake reading
     sensor.getCapacitance();
     delay(300);
 
-    // try again?
+    // try again
     int moisture = sensor.getCapacitance();
     delay(300);
-    // while (sensor.isBusy()) delay(50); 
     float temperature = sensor.getTemperature()/(float)10;
     delay(300);
 
@@ -135,8 +129,6 @@ void loop()
     Serial.println(moisture);
     Serial.println(temperature);
     Serial.println(temperature_f);
-
-    //sensor.sleep();
 
      // Read voltage
     pinMode(VBAT_ADC_CTL, OUTPUT);
@@ -169,7 +161,6 @@ void loop()
     pinMode(Vext, OUTPUT);  
     digitalWrite(Vext, HIGH);
     delay(500);
-    Serial.println("---------------------------snoozin----------------------------");
 
     done = true;
     TimerSetValue( &sleep, timetosleep );
@@ -180,7 +171,6 @@ void loop()
 void OnSleep()
 {
   Serial.printf("[lowp] lowpower mode  %d ms\r\n", timetowake);
-  Serial.println("---------------------------zzzzzzzz----------------------------");
   lowpower = 1;
   
   //timetosleep ms later wake up;

@@ -1,18 +1,15 @@
 #include "LoRaWan_APP.h"
 #include "Arduino.h"
 #include "softSerial.h"
-
-#include <I2CSoilMoistureSensor.h>
 #include <Wire.h>
 
-I2CSoilMoistureSensor sensor;
-
-#define timetosleep 300 // 300 milliseconds
 #define timetowake 1000 * 60 * 5 // five minutes
 
-String host_id = "distance_1";
+String host_id = "distance_1"; // Change this to whatever you want!
 String distance;
 String voltage = "0";
+
+#define timetosleep 300 // 300 milliseconds
 
 static TimerEvent_t sleep;
 static TimerEvent_t wakeup;
@@ -24,8 +21,8 @@ bool done = false;
 #define LORA_BANDWIDTH                              0
 #define LORA_SPREADING_FACTOR                       8
 #define LORA_CODINGRATE                             4
-#define LORA_PREAMBLE_LENGTH                        8         // Same for Tx and Rx
-#define LORA_SYMBOL_TIMEOUT                         0         // Symbols
+#define LORA_PREAMBLE_LENGTH                        8
+#define LORA_SYMBOL_TIMEOUT                         0
 #define LORA_FIX_LENGTH_PAYLOAD_ON                  false
 #define LORA_IQ_INVERSION_ON                        false
 #define RX_TIMEOUT_VALUE                            1000
@@ -149,14 +146,10 @@ void loop()
     
     detachInterrupt(GPIO2); // prevents system hang after switching power off
      
-    // Turn off device via https://github.com/HelTecAutomation/CubeCell-Arduino/issues/35
-    // pinMode(GPIO1, ANALOG);
-    // pinMode(GPIO2, ANALOG);
     Wire.end();
     pinMode(Vext, OUTPUT);  
     digitalWrite(Vext, HIGH);
     delay(500);
-    Serial.println("---------------------------snoozin----------------------------");
 
     done = true;
     TimerSetValue( &sleep, timetosleep );
@@ -202,7 +195,6 @@ int readTemp()
 void OnSleep()
 {
   Serial.printf("[lowp] lowpower mode  %d ms\r\n", timetowake);
-  Serial.println("---------------------------zzzzzzzz----------------------------");
   lowpower = 1;
   
   //timetosleep ms later wake up;

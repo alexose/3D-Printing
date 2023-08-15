@@ -1,17 +1,17 @@
 #include "LoRaWan_APP.h"
 #include "Arduino.h"
 #include "softSerial.h"
-
 #include <DHT.h>
 #define DHTPIN GPIO2 // Digital pin connected to the DHT sensor
 #define DHTTYPE DHT22
+
+String host_id = "temperature_1"; // Change this to whatever you want!
+String voltage = "0";
+
 DHT dht(DHTPIN, DHTTYPE);
 
 #define timetosleep 300
 #define timetowake 1000 * 60 * 10 // Every 10 minutes
-
-String host_id = "temperature_1";
-String voltage = "0";
 
 static TimerEvent_t sleep;
 static TimerEvent_t wakeup;
@@ -23,8 +23,8 @@ bool done = false;
 #define LORA_BANDWIDTH                              0
 #define LORA_SPREADING_FACTOR                       8
 #define LORA_CODINGRATE                             4
-#define LORA_PREAMBLE_LENGTH                        8         // Same for Tx and Rx
-#define LORA_SYMBOL_TIMEOUT                         0         // Symbols
+#define LORA_PREAMBLE_LENGTH                        8
+#define LORA_SYMBOL_TIMEOUT                         0
 #define LORA_FIX_LENGTH_PAYLOAD_ON                  false
 #define LORA_IQ_INVERSION_ON                        false
 #define RX_TIMEOUT_VALUE                            1000
@@ -96,7 +96,6 @@ void loop()
 {
   if (lowpower)
   {
-    //note that LowPower_Handler() run six times the mcu into lowpower mode;
     lowPowerHandler();
   } else if (!done) {
   
@@ -144,7 +143,6 @@ void loop()
     pinMode(Vext, OUTPUT);  
     digitalWrite(Vext, HIGH);
     delay(500);
-    Serial.println("---------------------------snoozin----------------------------");
 
     done = true;
     TimerSetValue( &sleep, timetosleep );
@@ -155,7 +153,6 @@ void loop()
 void OnSleep()
 {
   Serial.printf("[lowp] lowpower mode  %d ms\r\n", timetowake);
-  Serial.println("---------------------------zzzzzzzz----------------------------");
   lowpower = 1;
   
   //timetosleep ms later wake up;
