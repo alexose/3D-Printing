@@ -2,31 +2,29 @@
 #include "Arduino.h"
 #include "softSerial.h"
 
-// Sensor types
 #include <I2CSoilMoistureSensor.h>
-#include <DHT.h>
-
 #include <Wire.h>
-
 
 I2CSoilMoistureSensor sensor;
 
-#define timetosleep 1500
-#define timetowake 60 * 500 * 5
+#define timetosleep 300 // 300 milliseconds
+#define timetowake 1000 * 60 * 5 // five minutes
+
+String host_id = "soil_moisture_2";
+String voltage = "0";
+
 static TimerEvent_t sleep;
 static TimerEvent_t wakeup;
 uint8_t lowpower = 1;
 bool done = false;
 
-String voltage = "0";
-
 #define RF_FREQUENCY                                868000000
-#define TX_OUTPUT_POWER                             10
+#define TX_OUTPUT_POWER                             14
 #define LORA_BANDWIDTH                              0
-#define LORA_SPREADING_FACTOR                       11
-#define LORA_CODINGRATE                             1
-#define LORA_PREAMBLE_LENGTH                        8
-#define LORA_SYMBOL_TIMEOUT                         0
+#define LORA_SPREADING_FACTOR                       8
+#define LORA_CODINGRATE                             4
+#define LORA_PREAMBLE_LENGTH                        8         // Same for Tx and Rx
+#define LORA_SYMBOL_TIMEOUT                         0         // Symbols
 #define LORA_FIX_LENGTH_PAYLOAD_ON                  false
 #define LORA_IQ_INVERSION_ON                        false
 #define RX_TIMEOUT_VALUE                            1000
@@ -68,23 +66,10 @@ void setup() {
 
   Radio.Init( &RadioEvents );
   Radio.SetChannel( RF_FREQUENCY );
-  Radio.SetTxConfig(
-    MODEM_LORA,
-    TX_OUTPUT_POWER,
-    0,
-    LORA_BANDWIDTH,
-    LORA_SPREADING_FACTOR,
-    LORA_CODINGRATE,
-    LORA_PREAMBLE_LENGTH,
-    LORA_FIX_LENGTH_PAYLOAD_ON,
-    true,
-    0,
-    0,
-    LORA_IQ_INVERSION_ON,
-    3000
-  );
-
-  Radio.SetSyncWord(0x34);
+  Radio.SetTxConfig( MODEM_LORA, TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
+    LORA_SPREADING_FACTOR, LORA_CODINGRATE,
+    LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,
+    true, 0, 0, LORA_IQ_INVERSION_ON, 3000 );
 
   TimerInit( &sleep, OnSleep );
   TimerInit( &wakeup, OnWakeup );
@@ -163,7 +148,13 @@ void loop()
   
     // Send reading
     Radio.IrqProcess();
-    String blah = "17," + temperature_formatted + "," + moisture + "," + voltage;
+
+    // InfluxDB line protocol format
+    String blah = "dorothy,host=" + host_id + 
+    " temperature=" + temperature_formatted + 
+    ",capacitance=" + moisture +
+    ",voltage=" + voltage;
+
     Serial.print(blah);
     Radio.Send((uint8_t *)blah.c_str(), blah.length() );
   
@@ -188,8 +179,6 @@ void loop()
 
 void OnSleep()
 {
-
-  
   Serial.printf("[lowp] lowpower mode  %d ms\r\n", timetowake);
   Serial.println("---------------------------zzzzzzzz----------------------------");
   lowpower = 1;
@@ -199,6 +188,7 @@ void OnSleep()
   TimerSetValue( &wakeup, timetowake );
   TimerStart( &wakeup );
 }
+
 void OnWakeup()
 {
   Serial.printf("[wkup] wake up, %d ms later into lowpower mode.\r\n", timetosleep);

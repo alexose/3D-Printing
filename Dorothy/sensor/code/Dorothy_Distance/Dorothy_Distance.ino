@@ -2,13 +2,17 @@
 #include "Arduino.h"
 #include "softSerial.h"
 
-#include <DHT.h>
-#define DHTPIN GPIO2 // Digital pin connected to the DHT sensor
-#define DHTTYPE DHT22
-DHT dht(DHTPIN, DHTTYPE);
+#include <I2CSoilMoistureSensor.h>
+#include <Wire.h>
 
-#define timetosleep 300
-#define timetowake 60 * 1000 * 10 // Every 10 minutes
+I2CSoilMoistureSensor sensor;
+
+#define timetosleep 300 // 300 milliseconds
+#define timetowake 1000 * 60 * 5 // five minutes
+
+String host_id = "distance_1";
+String distance;
+String voltage = "0";
 
 static TimerEvent_t sleep;
 static TimerEvent_t wakeup;
@@ -16,12 +20,12 @@ uint8_t lowpower = 1;
 bool done = false;
 
 #define RF_FREQUENCY                                868000000
-#define TX_OUTPUT_POWER                             10
+#define TX_OUTPUT_POWER                             14
 #define LORA_BANDWIDTH                              0
-#define LORA_SPREADING_FACTOR                       11
-#define LORA_CODINGRATE                             1
-#define LORA_PREAMBLE_LENGTH                        8
-#define LORA_SYMBOL_TIMEOUT                         0
+#define LORA_SPREADING_FACTOR                       8
+#define LORA_CODINGRATE                             4
+#define LORA_PREAMBLE_LENGTH                        8         // Same for Tx and Rx
+#define LORA_SYMBOL_TIMEOUT                         0         // Symbols
 #define LORA_FIX_LENGTH_PAYLOAD_ON                  false
 #define LORA_IQ_INVERSION_ON                        false
 #define RX_TIMEOUT_VALUE                            1000
@@ -32,6 +36,8 @@ char txPacket[BUFFER_SIZE];
 static RadioEvents_t RadioEvents;
 void OnTxDone( void );
 void OnTxTimeout( void );
+
+softSerial softwareSerial(GPIO1 /*TX pin*/, GPIO2 /*RX pin*/);
 
 typedef enum
 {
@@ -46,12 +52,11 @@ int16_t rssi, rxSize;
 
 void setup() {
 
-  
+  Wire.begin();
   Serial.begin(115200);
   Serial.println( "[stup] INIT");
-  pinMode(GPIO2, INPUT_PULLUP);
-  delay(100);
-  dht.begin(); // reset sensor
+
+  sensor.begin(); // reset sensor
   delay(1000);
 
   rssi = 0;
@@ -61,23 +66,10 @@ void setup() {
 
   Radio.Init( &RadioEvents );
   Radio.SetChannel( RF_FREQUENCY );
-  Radio.SetTxConfig(
-    MODEM_LORA,
-    TX_OUTPUT_POWER,
-    0,
-    LORA_BANDWIDTH,
-    LORA_SPREADING_FACTOR,
-    LORA_CODINGRATE,
-    LORA_PREAMBLE_LENGTH,
-    LORA_FIX_LENGTH_PAYLOAD_ON,
-    true,
-    0,
-    0,
-    LORA_IQ_INVERSION_ON,
-    3000
-  );
-
-  Radio.SetSyncWord(0x34);
+  Radio.SetTxConfig( MODEM_LORA, TX_OUTPUT_POWER, 0, LORA_BANDWIDTH,
+    LORA_SPREADING_FACTOR, LORA_CODINGRATE,
+    LORA_PREAMBLE_LENGTH, LORA_FIX_LENGTH_PAYLOAD_ON,
+    true, 0, 0, LORA_IQ_INVERSION_ON, 3000 );
 
   TimerInit( &sleep, OnSleep );
   TimerInit( &wakeup, OnWakeup );
@@ -109,41 +101,58 @@ void loop()
     //note that LowPower_Handler() run six times the mcu into lowpower mode;
     lowPowerHandler();
   } else if (!done) {
-  
-    pinMode(GPIO2, INPUT_PULLUP);
-    delay(100);
 
     // Turn on device
     pinMode(Vext, OUTPUT);
     digitalWrite(Vext, LOW);
-    delay(1000);
+    delay(500);
 
-    dht.begin(); // reset sensor
-    delay(2000);
+    pinMode(GPIO1, OUTPUT);
+    pinMode(GPIO2, INPUT);    
+    //software serial init
 
-    float h = dht.readHumidity();
-    float t = dht.readTemperature(true); // Fahrenheit = true
+    softwareSerial.begin(9600);
+    softwareSerial.flush();
+
+    delay(200);
+    distance = readDistance();
+    distance = readDistance();
+    int temperature = readTemp();
+    
+    Serial.println(distance);
+    Serial.println(temperature);
+
+    float temperature_f = 1.8 * temperature + 32;
+    String temperature_formatted = String(temperature_f, 1);
 
      // Read voltage
     pinMode(VBAT_ADC_CTL, OUTPUT);
     digitalWrite(VBAT_ADC_CTL, LOW);
     float c = getBatteryVoltage();
+    voltage = String(c / 1000, 4);
     pinMode(VBAT_ADC_CTL, INPUT);
     delay(100);
-
-    Serial.print(dht.readHumidity());
-    Serial.print(dht.readTemperature(true));
   
     // Send reading
     Radio.IrqProcess();
-    String blah = "root_cellar," + String(t) + "," + String(h) + "," + String(c / 1000, 4);
-    Serial.print(blah);
 
+    // InfluxDB line protocol format
+    String blah = "dorothy,host=" + host_id + 
+    " temperature=" + temperature_formatted + 
+    ",distance=" + distance +
+    ",voltage=" + voltage;
+
+    Serial.print(blah);
     Radio.Send((uint8_t *)blah.c_str(), blah.length() );
   
     delay(100);
+    
+    detachInterrupt(GPIO2); // prevents system hang after switching power off
      
     // Turn off device via https://github.com/HelTecAutomation/CubeCell-Arduino/issues/35
+    // pinMode(GPIO1, ANALOG);
+    // pinMode(GPIO2, ANALOG);
+    Wire.end();
     pinMode(Vext, OUTPUT);  
     digitalWrite(Vext, HIGH);
     delay(500);
@@ -152,6 +161,41 @@ void loop()
     done = true;
     TimerSetValue( &sleep, timetosleep );
     TimerStart( &sleep );
+  }
+}
+
+int readDistance()
+{
+  unsigned int highByte = 0;
+  unsigned int lowByte = 0;
+  unsigned int dist = 0;
+
+  softwareSerial.flush();
+  softwareSerial.sendByte(0X55);
+  delay(500);
+  if (softwareSerial.available() >= 2)
+  {
+
+    highByte = softwareSerial.read();
+    lowByte = softwareSerial.read();
+    dist = highByte * 256 + lowByte;          // Calculate the distance
+    if ((dist > 1) && (dist < 10000))
+    {
+      return dist;
+    }
+  }
+}
+
+int readTemp()
+{
+  unsigned int temp = 0;
+  softwareSerial.sendByte(0X50);
+  delay(100);
+  if (softwareSerial.available() >= 1)
+  {
+      temp = softwareSerial.read() - 45; // celcius
+      softwareSerial.flush();
+      return temp;
   }
 }
 
@@ -166,6 +210,7 @@ void OnSleep()
   TimerSetValue( &wakeup, timetowake );
   TimerStart( &wakeup );
 }
+
 void OnWakeup()
 {
   Serial.printf("[wkup] wake up, %d ms later into lowpower mode.\r\n", timetosleep);
