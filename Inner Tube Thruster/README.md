@@ -15,4 +15,4 @@ But, this prototype would be much improved with a trigger mechanism. This versio
 out of the top, which is hard to adjust with one hand.
 
 The other thing that I would work on would be the noise. These thrusters make a truly annoying noise. Not at all
-condusive to true water relaxation.
+conducive to true water relaxation.
