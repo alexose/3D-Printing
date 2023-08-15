@@ -11,8 +11,8 @@ String rssi = "RSSI --";
 String packSize = "--";
 String packet ;
 
-char ssid[] = "Thompson Creek Yacht Club";     //  your network SSID (name) 
-char pass[] = "winecountry";    // your network password
+char ssid[] = "YOUR_SSID";     //  your network SSID (name) 
+char pass[] = "YOUR_PASSWORD";    // your network password
 int status = WL_IDLE_STATUS;     // the Wifi radio's status
 
 // the IP address of your InfluxDB host
