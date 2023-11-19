@@ -5,7 +5,7 @@ Mini Pump
 
 */
 
-$fn = 20;
+$fn = 50;
 
 use <threads.scad>
 
@@ -103,6 +103,11 @@ module outer_shell(){
         }
         cylinder(10, r=12.9/2);
         translate([w - t*2, 0, h-53]) rotate([0, 90]) cylinder(10, r=6);
+    }
+    
+    difference() {
+        cylinder(20, r=12);
+        cylinder(20, r=11);
     }
 }
 
