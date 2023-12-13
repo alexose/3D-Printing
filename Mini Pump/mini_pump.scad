@@ -67,7 +67,7 @@ module plate() {
             r1 = r*2;
             translate([0, c/2, 0]) rotate([90, 0]) cylinder(c, r=r1);
         }
-        translate([0, 0, th - bt/2]) cube([bd, r, bt] , center=true);
+        translate([0, 0, th - bt/2]) cube([bd, r, bt], center=true);
         
     }
 
@@ -83,13 +83,6 @@ module plate() {
             }
         }   
     }
-
-    module torus(r, d) {
-      $fn=50;
-      rotate_extrude(convexity=10) {
-        translate([r,0,0]) circle(d);
-      }
-    } 
     
     
     module lip() {
@@ -111,7 +104,7 @@ module plate() {
 }
 
 module cap_with_hole() {
-    r1 = 5; // tube radius
+    r1 = 4.75; // tube radius
     r2 = hole_radius + 5;
     r3 = r2 - r1;
     h = 20;
@@ -120,10 +113,10 @@ module cap_with_hole() {
         union() {
             cap();
             // cylinder(h, r=r2 + t);
-            cylinder(8, r=r1 + t);
+            cylinder(10, r=r1 + t);
         }
         cylinder(h, r=r1);
-        translate([20, 0]) cylinder(h, r=r1);
+        translate([18, 0]) cylinder(h, r=r1);
         // translate([0, 0, t]) cylinder(h, r3, r2);
         // translate([0, 0, 8]) radial_multiply(0) translate([0, -10])  rotate([50, 0]) cylinder(20, r=r1 + 1);
     }
@@ -135,8 +128,6 @@ module cap(bottom_padding = 0) {
     r = plate_radius + tolerance + t;
     f = tolerance; // tolerance fudge factor for plate
     b = bottom_padding;
-    $fn=40;
-    
     
     translate([0, 0, 18]) ScrewHole(r*2 + f, thread_height + t, pitch=pitch, tooth_angle=55) {
         cylinder(h,r=r+t);
@@ -144,7 +135,7 @@ module cap(bottom_padding = 0) {
     
     difference() {
         rounded_cylinder(r+t, 20, 2);
-        translate([0,0,t]) cylinder(20, r=r);
+        translate([0,0,t]) cylinder(20, r=r-8);
     }
     
     module rounded_cylinder(r,h,n) {
@@ -209,7 +200,7 @@ module tube() {
 
 module wire_guides(h){
     // Tube guide
-    rotate([0, 0, 360/6]) radial_multiply(27) cylinder(h, r=5);
+    rotate([0, 0, 360/6]) radial_multiply(19) cylinder(100, r=5);
 }
 
 module cells(tolerance=0.3) {

@@ -7,7 +7,7 @@ t = 4;
 $fn=40;
 
 difference() {
-    d = 29; // Distance from top and bottom
+    d = 28; // Distance from top and bottom
     union() {
         translate([w/2, h - d]) grab(t);
         translate([w/2, d]) rotate([0, 0, 180]) grab(t);
@@ -22,27 +22,29 @@ module base(w, h, t){
 
 module grab(t) {
     h = 27;
-    ch = 7;
+    ch = 8;
     bh = 4;
     w = 47;
     r = 5 * 1.1;
-    f = 13; // flare
+    f = 12; // flare
+    th = 3; // thicc
+    
     difference () {
         hull() {
-            translate([0, ch/2, h]) rotate([90, 0]) cylinder(ch, r+t+2, r+t+2);
+            translate([0, ch/2 + th, h]) rotate([90, 0]) cylinder(ch + th, r+t+th, r+t+th);
             translate([0, f/4, 1]) cube([w, ch+f, 1], center=true);   
         }
         translate([0, ch, h]) rotate([90, 0]) union() {
             cylinder(ch*2, r, r);
             translate([0, 0, -5]) cylinder(bh+5, 10, 10);
-            translate([0, 0, 10]) cylinder(bh+2, 10, 10);
+            translate([0, 0, 11]) cylinder(bh+2, 10, 10);
         }
     }
 
 }
 
 module screw_holes(w, h, t) {
-    d1 = 12; // distance from outside
+    d1 = 9; // distance from outside
     d2 = 29;
     
     // Outer holes (corners)
