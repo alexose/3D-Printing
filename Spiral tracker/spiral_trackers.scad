@@ -56,7 +56,7 @@ module ball_without_stylus(r1, r2, h) {
                 ball(r1, r2, h1);
             }
         }
-        translate([0, r1*1.5]) cube(r1*2, true);
+        translate([0, r1*1.75]) cube(r1*2, true);
     }
 }
 
@@ -92,22 +92,21 @@ module ball(r1, r2, h1) {
 
 // Housing that immobilizes the sphere
 module housing(r1, h1, r2,  t1) {
-    t = 5;
-    r = r1 + h1 + r2;
-    d = r * 2 + t;
-    base = 22;
-    shaft_radius = 1;
-    shaft_length = 5;
-    tolerance = 0.2;
+    
+    // Radius should be the same as the track cylinder plus a bit of tolerance
+    r = r1 + h1 + 0.3;
+    
+    // Outer radiance should be the above plus thickness
+    outer_radius = r + 1.6;
+    
+    h = r1 + 1 + t1 + 5;
     
     difference() {
-        cube([d, t1, d], true);
-        union() {
-            sphere(r1 + tolerance);
-            difference() {
-                rotate([90, 0]) cylinder(t/2, r = r + 1 + tolerance);
-                rotate([90, 0]) cylinder(t/2, r = r1+h1 - tolerance);
-            }
+        translate([0, 0, -20]) cylinder(h, r=outer_radius);
+        hull() {
+            sphere(r);
+            translate([0, 0, 50]) sphere(r);
         }
-    } 
+        
+    }
 }
