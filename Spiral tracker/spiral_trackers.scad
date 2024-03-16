@@ -1,16 +1,20 @@
 // Single motor dual axis tracking mount
 
 $fn = 100;
-r1 = 15;
+r1 = 30;
 r2 = 3;
 h1 = 6;
 t1 = 10; // Thickness of housing.  Trades off between strength and range of motion
 
+render_stylus = 0;
+render_housing = 0;
+render_ball_without_stylus = 1;
+render_track_cylinder = 0;
 
-// stylus(r1, r2, h);
-// housing(r1, h1, r2, t1);
-// ball_without_stylus(r1, r2, h1);
-track_cylinder(r1, h1, r2, t1);
+if (render_stylus) stylus(r1, r2, h);
+if (render_housing) housing(r1, h1, r2, t1);
+if (render_ball_without_stylus) ball_without_stylus(r1, r2, h1);
+if (render_track_cylinder) track_cylinder(r1, h1, r2, t1);
 
 module track_cylinder(r1, h1, r2, t1) {
     difference() {
@@ -52,6 +56,7 @@ module ball_without_stylus(r1, r2, h) {
                 ball(r1, r2, h1);
             }
         }
+        translate([0, r1*1.5]) cube(r1*2, true);
     }
 }
 
