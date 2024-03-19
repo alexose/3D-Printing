@@ -1,13 +1,13 @@
 # Dorothy Sensor
 
-The Dorothy Sensor platform is a simple, 3d printable case that houses a
+The Dorothy Sensor is a simple, 3d printable case that houses a
 [Heltec Cubecell](https://heltec.org/project/htcc-ab01-v2/) board, three battery cells, and one of three different types
 of sensors.
 
 It is designed to live outdoors, and can tolerate any environment that PLA can handle. With the correct sealant, it
-should be able to operate underwater.
+could even operate underwater.
 
-For measuring high heat environemnts, consider either printing in ABS or mounting the sensing element on a long wire.
+For measuring high heat environments, consider either printing in ABS or mounting the sensing element on a long wire.
 
 ## Materials
 
