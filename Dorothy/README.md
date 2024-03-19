@@ -19,8 +19,9 @@ proprietary platform.
 -   **Easy to Assemble/Disassemble**: From the moment you're done printing, it takes about 20 minutes to assemble a
     working Dorothy, requiring minimal tools and skill. Just mount the components, screw it together, and you're set.
 -   **Low Cost**: Around $25 per unit, including batteries
--   **Easy-to-read Codebase**: The codebase is designed to be compact and easy to understand.
--   **Open Licensing**: Dorothy comes with a fully open license.
+-   **Small Bill of Materials**
+-   **Easy-to-read Codebase**
+-   **Open Licensing**
 
 ## How to build
 
@@ -43,18 +44,16 @@ And (depending on what you want to measure) your choice of:
 
 <h2 name="hub">Dorothy Hub</h2>
 
-The hub is a bridge between the battery-powered sensors and your WiFi network.
+The [hub](https://github.com/alexose/3D-Printing/tree/main/Dorothy/hub) is a bridge between the battery-powered sensors
+and your WiFi network. A hub is required in order to use Dorothy.
 
-The current version of the hub uses a [Heltec WiFi LoRa 32](https://heltec.org/project/wifi-kit-32-v3/) board instead of
-a CubeCell. The WiFi LoRa 32 has an included OLED screen, which makes it easier to debug, but is missing some of the key
-battery management and low-power features of the CubeCell.
-
-Note that the same code should also work on the CubeCell, but I haven't tested it.
+The hub is very small, and should only take you around an hour to print and assemble. Please follow the
+[build instructions](https://github.com/alexose/3D-Printing/tree/main/Dorothy/hub) to get started.
 
 <h2 name="sensor">Dorothy Sensor</h2>
 
 Dorothy is designed around the [Cylindrical Battery Holder](https://www.thingiverse.com/thing:6080710) project, allowing
-for easy battery packs swaps.
+for easy battery pack swaps.
 
 ## The Dorothy Protocol
 
