@@ -16,6 +16,7 @@ proprietary platform.
 -   **Weatherproof**: Designed to live outside year round.
 -   **Long Range**: Capable of a range of at least 1/4 mile (400m).
 -   **Long Battery Life**: Designed for a battery life of one year.
+-   **Reliable**: Gracefully handles power and network outages.
 -   **Easy to Assemble/Disassemble**: From the moment you're done printing, it takes about 20 minutes to assemble a
     working Dorothy, requiring minimal tools and skill. Just mount the components, screw it together, and you're set.
 -   **Low Cost**: Around $25 per unit, including batteries
@@ -52,13 +53,22 @@ The hub is very small, and should only take you around an hour to print and asse
 
 <h2 name="sensor">Dorothy Sensor</h2>
 
+The Dorothy Sensor is a cylinder containing three battery cells, a CubeCell board, and some type of sensor. At the time
+of writing, it supports any of the three sensors listed above, but can be easily modified to support any sensor that
+works on an ESP32 device.
+
 Dorothy is designed around the [Cylindrical Battery Holder](https://www.thingiverse.com/thing:6080710) project, allowing
 for easy battery pack swaps.
 
-## The Dorothy Protocol
+Please follow the full [build instructions](https://github.com/alexose/3D-Printing/tree/main/Dorothy/sensor) to get
+started building your first Dorothy Sensor.
 
-Dorothy borrows heavily from the
-[InfluxDB Line Protocol](https://docs.influxdata.com/influxdb/v1.3/write_protocols/line_protocol_tutorial/)
+## Protocol
+
+Dorothy simply uses the
+[InfluxDB Line Protocol](https://docs.influxdata.com/influxdb/v1.3/write_protocols/line_protocol_tutorial/) to
+communicate. While there are more efficient ways of sending messages, this reduces complexity and allows for easy
+debugging.
 
 ## Future Work
 
