@@ -14,7 +14,7 @@ base_plate_length = 110;
 base_plate_radius = 16;
 
 main_assembly();
-standoff();
+// standoff();
 
 module main_assembly() {
     distance_between_mounts = 87;
@@ -50,7 +50,7 @@ module dc_dc_module_base() {
     ];
 
     difference() {
-        base(w, l, h, r);
+        base(r, w, l, h);
         for (screw_hole_coordinate = screw_hole_coordinates) {
             translate(screw_hole_coordinate) cylinder(10, r=1);
         }
@@ -78,9 +78,15 @@ module mount() {
     ];
 
     difference() {
-        base();
+        union() {
+            hull() {
+                base();
+                translate([0, -base_plate_length/2+1, -10]) base(0.1, 50, 0, 20);
+            }
+        }
+
         for (screw_hole_coordinate = screw_hole_coordinates) {
-            translate([0, -3]) translate(screw_hole_coordinate) screw_hole();
+            translate([0, -3, -10]) translate(screw_hole_coordinate) screw_hole(1.5, 40);
         }
 
         // Holes for wires
@@ -89,7 +95,7 @@ module mount() {
     }
 }
 
-module base(w = 50, l = base_plate_length, h = base_plate_height, r = base_plate_radius) {
+module base(r = base_plate_radius, w = 50, l = base_plate_length, h = base_plate_height) {
     x1 = w/2-r;
     x2 = -w/2+r;
     y1 = l/2-r;
@@ -104,10 +110,10 @@ module base(w = 50, l = base_plate_length, h = base_plate_height, r = base_plate
 
 
 // This is a "negative", meant to be subtracted from the adapter.
-module screw_hole(r1=1.5) {
+module screw_hole(r1=1.5, h=10) {
     // r1 is radius of screw shaft
     r2 = 2 + 0.5; // radius of the screw head, plus a little extra
-    h1 = 10; // height of the screw
+    h1 = h; // height of the screw
     h2 = 2 + 0.5; // height of the head, plus a little extra
     union() {
         cylinder(r=r1, h=h1);
