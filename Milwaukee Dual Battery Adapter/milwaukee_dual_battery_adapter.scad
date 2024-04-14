@@ -32,8 +32,13 @@ module main_assembly() {
         }
         
         // Holes for wires
-        rotate([-30, 0, 0]) translate([0, -70, -50]) scale([2, 1, 1]) cylinder(100, r=3.2);
-        mirror([0, 1, 0]) rotate([-30, 0, 0]) translate([0, -70, -50]) scale([2, 1, 1]) cylinder(100, r=3.2);
+        wire_hole();
+        mirror([0, 1, 0]) wire_hole();
+        
+    }
+    
+    module wire_hole() {
+        rotate([-23, -15, 0]) translate([16, -65, -50]) scale([2, 1, 1]) cylinder(100, r=3.3);
     }
 }
 
@@ -89,16 +94,20 @@ module mount() {
         union() {
             hull() {
                 base();
-                translate([0, -base_plate_length/2+1, -10]) base(0.1, 78, 0, 20);
+                rotate([90, 0]) translate([0, -8, base_plate_length/2 - 2]) base(3, 78, 35, 1);
             }
         }
 
         for (screw_hole_coordinate = screw_hole_coordinates) {
             translate([0, -5, -10]) translate(screw_hole_coordinate) cylinder(40, r=1.5); // screw shaft
-            translate([0, -5, -10]) translate(screw_hole_coordinate) cylinder(17, r=4); // head
+            translate([0, -5, -33]) translate(screw_hole_coordinate) cylinder(40, r=4); // head
         }
     }
+    
+    
 }
+
+
 
 module base(r = base_plate_radius, w = 70, l = base_plate_length, h = base_plate_height) {
     x1 = w/2-r;
