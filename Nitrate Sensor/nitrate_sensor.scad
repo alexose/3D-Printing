@@ -5,7 +5,7 @@
 // There are two main parts:  The emitter module and the photodiode module.
 // Both sit behind quartz discs that allow UV light to pass through.
 
-quartz_radius = 10 + 0.3; // Radius of quartz disc, plus a bit extra for tolerance
+quartz_radius = 12.5 + 0.3; // Radius of quartz disc, plus a bit extra for tolerance
 quartz_thickness = 0.8; // Thickness of quartz disc
 wall_thickness = 1.2;
 gap_distance = 20; // Gap between emitter and photodiode
@@ -19,7 +19,7 @@ y = 63/2;
 r = quartz_radius;
 t = wall_thickness;
 g = gap_distance;
-$fn = 50;
+$fn = 100;
 
  translate([0, 0, base_height]) difference() {
     base();
@@ -31,13 +31,17 @@ union() {
     h = compartment_height;
     translate([0, x +  20, h]) {
         difference() {
-            compartment(1, h);
-            translate([0, 0, 1]) compartment(0, h);
-            screw_holes(h, 2);
-        }
-        translate([0, 0, 0]) difference() {
-            screw_holes(h-1, 3);
-            screw_holes(h-1, 1);
+            union() {
+                difference() {
+                    compartment(0, h);
+                    translate([0, 0, 1]) compartment(-1, h);
+                }
+                screw_holes(h, 3);
+            }
+            union() {
+                screw_holes(h, 1);
+                translate([0, 0, -1]) screw_holes(h, 2);
+            }
         }
     }  
 }
@@ -53,7 +57,6 @@ module base() {
             compartment();
             translate([0, 0, -1]) emitters(5, 5);
         }
-        // compartment(-1);
         translate([0, 0, -1]) difference() {
             scale([0.85, 0.8, 1]) hull() {
                  compartment();
@@ -87,7 +90,10 @@ module compartment(o=0, h=base_height) {
     }
 }
 
-module screw_holes(h, r=2) {
+module screw_holes(h, r=2, o=1) {
+    x = x-o;
+    y = y-o;
+    
     translate([0, 0, -h]) linear_extrude(h) {
         union() {
             translate([x, y]) circle(r);
@@ -131,19 +137,15 @@ module emitter_housing(extra_distance, extra_radius) {
 
     translate([-h1-h2-g+extra_distance/2, 0, r+t]) rotate([0, 90]) {
         hull() {
-            cylinder(h1, r=r+t);
+            cylinder(h1, r=r+t+extra_radius);
             translate([0, 0, h1]) cylinder(h2, r=r+t - 0.5 + extra_radius);
         }
     }
 }
 
 module emitter_housing_cutouts(h1=10, h2=1.5, h3=quartz_thickness) {
-    h1 = 10; // body height
-    h2 = 1.5; // cap height
-    h3 = quartz_thickness;
-
     translate([-h1-h2-g/2, 0, r+t]) rotate([0, 90]) {
-        cylinder(h1, r=r);
+        cylinder(h1, r=r-2);
         translate([0, 0, h1]) cylinder(h2, r=r-2);
         translate([0, 0, h1+h2-h3]) cylinder(h2, r=r);
     }
