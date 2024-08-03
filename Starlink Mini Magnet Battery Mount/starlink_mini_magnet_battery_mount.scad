@@ -26,7 +26,6 @@ battery_bank_height = 65;
 //top();
 bottom();
 
-
 module starlink_mini() {
     rotate([270, 0]) import("Starlink_G4_Mini_Dish.stl");
 }
@@ -35,10 +34,8 @@ module battery_bank() {
     // made via:
     // flexbatter(n=6,m=2,deepen=0.70,deepen=0.70,df=0.30,oh=ew,l=65.2,lcorr=0.3,d=18.4,hf=0.75,shd=0,eps=0.28);
 
-    w = battery_bank_width / 2;
-    h = battery_bank_height / 2;
     
-    translate([-w, -h]) import("18650_X6.stl");
+    translate([-60, 0, 40]) rotate([0, 0, 270]) import("battery_pack.stl");
 }
 
 module battery_bank_cutout() {
@@ -72,10 +69,7 @@ module bottom() {
     r = 10; // Corner radius
     o = 20; // Offset
     d = 50; // Depth
-    
-    //starlink_mini();
-    
-   
+ 
     
     difference() {
         hull() corners([x, y]) cylinder(h, r=r);
@@ -84,10 +78,10 @@ module bottom() {
             rotate([0, 0, 180]) starlink_mini();
         }
         translate([0, 0, 18]) hull() corners([45, 20]) cylinder(100, r=r);
-         translate([0, -30, -38]) rotate([-10, 0]) battery_bank_cutout();
+         translate([0, -30, -60]) rotate([-8, 0]) battery_bank_cutout();
     }
     
-    color("blue") translate([0, -30, -23]) rotate([-10, 0]) battery_bank();
+    color("blue") translate([0, -30, -33]) rotate([-8, 0]) battery_bank();
 }
 
 // Places a child module in each corner of a square, specified by the dimensions parameter. 
