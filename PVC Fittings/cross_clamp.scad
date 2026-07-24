@@ -76,7 +76,7 @@ module cross_clamp() {
             }
             // re-cut both bores so the post/backs never fill the pipe channels
             translate([0, 0, z_emt]) rotate([90, 0, 0]) cylinder(h = clip_len + 2, r = emt_od/2 + grip_clear, center = true);
-            translate([0, 0, z_pvc]) rotate([0, 0, top_angle]) rotate([0, 90, 0]) cylinder(h = clip_len + 2, r = pvc_od/2 + grip_clear, center = true);
+            translate([0, 0, z_pvc]) rotate([0, 0, top_angle]) rotate([90, 0, 0]) cylinder(h = clip_len + 2, r = pvc_od/2 + grip_clear, center = true);
         }
         // shave flat planes off the top and bottom edges
         translate([0, 0, (z_bottom + z_top)/2]) cube([4*commonOD, 4*commonOD, z_top - z_bottom], center = true);
