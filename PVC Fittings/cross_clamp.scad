@@ -13,7 +13,9 @@ pvc_od     = 21.34;  // 1/2" Sch-40 PVC / conduit OD
 // ---------- Clip ----------
 grip_clear = 0.05;   // radial gap: bore = pipe_od/2 + this (TIGHT; C-clip flexes on)
 clip_wall  = 3.0;    // wall around the pipe
-emt_extra  = 1.5;    // extra wall on just the bottom (EMT) clamp for durability
+emt_extra  = 0.5;    // extra wall on just the bottom (EMT) clamp. Was 1.5 for durability,
+                     //   but 4.5mm wall made the C too stiff and it CRACKED on snap-on
+                     //   (2026-07-26). 0.5 -> 3.5mm wall: flexes without splitting.
 clip_len   = 20;     // length along the pipe axis
 mouth_emt  = 20.0;   // top opening width, EMT clip (< OD so it retains)
 mouth_pvc  = 18.0;   // top opening width, PVC clip
